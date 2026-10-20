@@ -484,6 +484,14 @@ select option{color:#101a3a}
 .tmrh{font-size:16px;color:var(--muted);margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);flex:none}
 .tmrh span{margin-left:8px;opacity:.85}
 .tmr .row{padding:6px 4px;font-size:17px}
+/* tomorrow's rows spread to fill the pane when there's room, so the pane never shows an empty band */
+.now .tmr{flex:1 1 auto;min-height:0;overflow:hidden}
+.now .tmr .row{flex:1 1 0;max-height:68px;min-height:40px;align-items:center}
+.now .list.bed + .tmrh{margin-top:10px}
+.glance{justify-content:space-between}
+.glance .gg{display:flex;flex-direction:column}
+.glance .g-mid,.glance .g-sky{margin-top:0;padding-top:0}
+.hcard{height:auto}
 .tmr .row span{font-size:15px}
 .now .list.bed{flex:0 1 auto;margin-top:4px}
 .now .list .more{flex:none;align-self:flex-start;margin:8px 8px 0}
@@ -869,10 +877,11 @@ function tipView(){if(!WX)return '';const ahead=lookAhead(),t=new Date();if(!ahe
   const lead=(ahead?'Tomorrow, ':'')+(am>=0?rnd(hr.temperature_2m[am])+'° at drop-off.':'');
   return '<div class="g-tip">'+SHIRT+'<div>'+(lead?'<b>'+lead+'</b> ':'')+esc(hint)+'.</div></div>'}
 function glanceView(){const ahead=lookAhead(),ND=DAYS[dowOf(addDays(S.today,1))],D=DAYS[dowOf(S.today)];
-  return '<section class="glance" aria-label="Time and weather"><div class="g-date">'+parse(S.today).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</div>'+
+  // four groups spaced evenly down the column: time, weather, live countdowns/timers, sun and moon
+  return '<section class="glance" aria-label="Time and weather"><div class="gg"><div class="g-date">'+parse(S.today).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</div>'+
     '<div class="g-time" id="time">'+clockHTML()+'</div>'+
-    (tomorrowMode()?'':'<div class="g-focus">'+(ahead?'Tomorrow: '+esc(ND.focus.charAt(0).toLowerCase()+ND.focus.slice(1)):'Today: '+esc(D.focus.charAt(0).toLowerCase()+D.focus.slice(1)))+'</div>')+
-    wxGlance()+(tomorrowMode()?'':tipView())+'<div class="g-mid" id="gmid">'+midView()+'</div><div class="g-sky" id="sun"'+(S.timers.length||leaveInfo()?' hidden':'')+'>'+sunBlock()+'</div></section>'}
+    (tomorrowMode()?'':'<div class="g-focus">'+(ahead?'Tomorrow: '+esc(ND.focus.charAt(0).toLowerCase()+ND.focus.slice(1)):'Today: '+esc(D.focus.charAt(0).toLowerCase()+D.focus.slice(1)))+'</div>')+'</div>'+
+    '<div class="gg">'+wxGlance()+(tomorrowMode()?'':tipView())+'</div><div class="g-mid" id="gmid">'+midView()+'</div><div class="g-sky" id="sun"'+(S.timers.length||leaveInfo()?' hidden':'')+'>'+sunBlock()+'</div></section>'}
 
 /* ---------- kitchen timers, the leave-the-house countdown, and dated countdowns ---------- */
 const fmtLeft=ms=>{const t=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60;return (h?h+':'+pad(m):m)+':'+pad(x)};
@@ -921,6 +930,9 @@ function tomorrowPane(){const tm=addDays(S.today,1),D=DAYS[dowOf(tm)],pl=((weekD
   const hint=WX?dressHint(1):'',hr=WX&&WX.hourly,am=hr&&hr.time?hr.time.indexOf(tm+'T08:00'):-1;
   if(hint)rows.push(['Clothes',(am>=0?rnd(hr.temperature_2m[am])+'° at drop-off. ':'')+hint]);
   if(pl.must)rows.push(['Must happen',pl.must]);
+  // the morning's shape: when to leave, and the day's weather in a line
+  const sc=P.sched;if(sc.leave&&(sc.school||[]).includes(dowOf(tm))){const [H,M]=sc.leave.split(':').map(Number),lt=parse(tm);lt.setHours(H,M);rows.unshift([fmtTime(lt.getTime()),P.leaveLabel||'Leave the house'])}
+  const wi=WX&&WX.daily?WX.daily.time.indexOf(tm):-1;if(wi>=0)rows.push(['Weather',WMO(WX.daily.weather_code[wi])[0]+', '+rnd(WX.daily.temperature_2m_max[wi])+'° / '+rnd(WX.daily.temperature_2m_min[wi])+'°'+((WX.daily.precipitation_probability_max[wi]||0)>=30?', '+WX.daily.precipitation_probability_max[wi]+'% rain':'')]);
   return '<section class="pane now" aria-label="Tonight and tomorrow"><header class="nowh"><div class="ttl"><h1>'+(open?'Before bed':'All set for tonight')+'</h1><span class="sub">'+(open?'then tomorrow is ready':'nothing left to do')+'</span></div></header><div class="nbar" style="opacity:0"></div>'+
     (bed?'<div class="list bed">'+bed+'</div>':'')+
     '<div class="tmrh">Tomorrow, '+esc(D.name)+'<span>'+esc(D.focus.toLowerCase())+'</span></div><div class="tmr">'+rows.map(r=>'<div class="row"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('')+'</div>'+
