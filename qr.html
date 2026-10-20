@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Calendar link code</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap">
+<style>
+/* Turns the calendar feed link into a QR code for the kitchen tablet to scan.
+   Everything happens in this browser: the link is never sent anywhere. */
+:root{--ink:#fff;--muted:rgba(255,255,255,.75)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Figtree,system-ui,sans-serif;color:var(--ink);background:linear-gradient(170deg,#2E6FC4,#5E9BDF 55%,#B9D6F2);display:flex;justify-content:center;padding:32px 16px}
+main{width:min(520px,100%);display:flex;flex-direction:column;gap:16px}
+h1{font-weight:600;font-size:28px;margin:0}
+p{margin:0;color:var(--muted);line-height:1.45}
+textarea{font:inherit;font-size:15px;width:100%;min-height:96px;border-radius:16px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);color:#fff;padding:12px 14px;resize:vertical}
+textarea::placeholder{color:rgba(255,255,255,.6)}
+#code{align-self:center;background:#fff;padding:18px;border-radius:20px;display:none}
+#code.on{display:block}
+#msg{min-height:1.4em;font-weight:600}
+</style>
+</head>
+<body>
+<main>
+  <h1>Calendar link code</h1>
+  <p>Paste the calendar feed link (it ends with <b>?key=…</b>). A code appears below. On the tablet, open the hub's <b>Settings › Scan the link with the camera</b> and hold this screen up to it.</p>
+  <textarea id="link" placeholder="https://script.google.com/macros/s/…/exec?key=…" autocomplete="off" spellcheck="false"></textarea>
+  <div id="msg" role="status"></div>
+  <div id="code" aria-label="QR code of the calendar link"></div>
+  <p>The link stays in this browser. Nothing is uploaded.</p>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const link=document.getElementById('link'),box=document.getElementById('code'),msg=document.getElementById('msg');
+function draw(){const v=link.value.trim();box.innerHTML='';box.classList.remove('on');
+  if(!v){msg.textContent='';return}
+  if(!/^https:\/\/\S+$/.test(v)){msg.textContent='The link should start with https:// and have no spaces.';return}
+  msg.textContent=/[?&]key=/.test(v)?'Ready to scan.':'Ready, but this link has no ?key= on the end. The feed will refuse it.';
+  new QRCode(box,{text:v,width:280,height:280,correctLevel:QRCode.CorrectLevel.M});box.classList.add('on')}
+link.addEventListener('input',draw);
+</script>
+</body>
+</html>
