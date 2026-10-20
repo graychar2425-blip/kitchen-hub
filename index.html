@@ -24,7 +24,7 @@
   --bins:#F7C85C; --clean:#72E3C6; --hm:#AFC2FF; --prep:#FFB48C; --clothes:#F3A6D6; --done:#78EBA9; --warn:#FFA08A;
   --ui:"Figtree", system-ui, "Segoe UI", sans-serif;
   --round:ui-rounded, "SF Pro Rounded", "Nunito", -apple-system, system-ui, sans-serif;
-  --r:28px; color-scheme:dark;
+  --r:28px; --r-lg:28px; --r-md:18px; color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{min-height:100%}
@@ -67,7 +67,7 @@ h1,h2,h3{margin:0;text-wrap:balance;font-weight:700}
 
 /* ---------- home board ---------- */
 .home{display:grid;grid-template-columns:372px minmax(0,1fr);gap:34px;max-width:1500px;margin:0 auto;
-  height:calc(100dvh - 88px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));min-height:560px;padding:8px 4px 0}
+  height:calc(100dvh - 100px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));min-height:560px;padding:8px 4px 0}
 .tile{padding:20px 22px;display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0;overflow:hidden}
 .tile.tap{cursor:pointer;text-align:left;transition:transform .15s ease}
 .tile.tap:active{transform:scale(.985)}
@@ -208,7 +208,7 @@ button.hrs{border:0;color:inherit;font:inherit;cursor:pointer;width:100%}
 .scrim{position:fixed;inset:0;z-index:40;background:rgba(4,7,18,.38)}
 .sheet{position:fixed;z-index:41;left:50%;transform:translateX(-50%);
   top:calc(env(safe-area-inset-top, 0px) + 20px);bottom:calc(env(safe-area-inset-bottom, 0px) + 14px);
-  width:min(1120px, calc(100vw - 24px));display:flex;flex-direction:column;border-radius:32px;animation:up .26s cubic-bezier(.2,.8,.2,1)}
+  width:min(1120px, calc(100vw - 24px));display:flex;flex-direction:column;border-radius:var(--r-lg);animation:up .26s cubic-bezier(.2,.8,.2,1)}
 .sheet.glass{--glass:rgba(14,26,60,.62)}
 .sheet:focus{outline:0}
 @keyframes up{from{transform:translate(-50%,24px);opacity:.4}to{transform:translate(-50%,0);opacity:1}}
@@ -217,12 +217,12 @@ button.hrs{border:0;color:inherit;font:inherit;cursor:pointer;width:100%}
 .sheethead h2 small{display:block;font-family:var(--ui);font-size:16px;font-weight:400;color:var(--muted);letter-spacing:0;margin-top:2px}
 .iconbtn{width:52px;height:52px;flex:none;border:0;border-radius:50%;background:var(--chip);cursor:pointer;font-size:20px;display:grid;place-items:center}
 .iconbtn:hover{background:rgba(255,255,255,.22)}
-.sheetbody{overflow:auto;padding:20px 22px 28px;display:flex;flex-direction:column;gap:16px;-webkit-overflow-scrolling:touch;min-height:0;flex:1}
+.sheetbody{overflow:auto;padding:20px 22px 36px;-webkit-mask-image:linear-gradient(#000 calc(100% - 28px),transparent);mask-image:linear-gradient(#000 calc(100% - 28px),transparent);display:flex;flex-direction:column;gap:16px;-webkit-overflow-scrolling:touch;min-height:0;flex:1}
 .calframe{width:100%;flex:1;min-height:480px;border:0;border-radius:20px;background:#fff}
 
 /* content inside sheets */
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px;align-items:start}
-.card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px;align-items:stretch}
+.card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:var(--r-md);padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .card header{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .card h3{font-size:19px}
 .card .count{font-variant-numeric:tabular-nums;font-weight:700;color:var(--muted);white-space:nowrap}
@@ -384,7 +384,7 @@ h2.who{gap:10px}
 .g-strip b{color:var(--ink);font-weight:600;font-size:16px}
 .g-strip .lo{font-size:13px;color:var(--faint)}
 .g-strip .pp{font-size:12px;font-weight:700;color:#CDE8FF;min-height:15px}
-.g-sky{display:flex;flex-direction:column;gap:6px;margin-top:16px;font-size:16px;color:var(--muted)}
+.g-sky{display:flex;flex-direction:column;gap:6px;margin-top:18px;font-size:16px;color:var(--muted)}
 .g-sky .moon{display:flex;align-items:center;gap:8px}
 .g-sky .sep{display:inline-block;width:18px}
 .g-sky svg{width:18px;height:18px;flex:none}
@@ -392,8 +392,10 @@ h2.who{gap:10px}
 .g-tip svg{width:24px;height:24px;flex:none;margin-top:1px}
 .g-tip b{color:var(--ink);font-weight:600}
 
-.act{display:grid;grid-template-rows:minmax(0,1fr) auto;gap:16px;min-height:0;min-width:0}
-.pane{background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,.06)),rgba(20,34,80,.3);border:1px solid rgba(255,255,255,.24);border-radius:30px;-webkit-backdrop-filter:blur(26px) saturate(150%);backdrop-filter:blur(26px) saturate(150%);color:var(--ink)}
+.act{display:flex;flex-direction:column;gap:16px;min-height:0;min-width:0;padding-top:6px}
+.act > .now{flex:1 1 auto}
+.act > .cards{flex:none}
+.pane{background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,.06)),rgba(20,34,80,.3);border:1px solid rgba(255,255,255,.24);border-radius:var(--r-lg);-webkit-backdrop-filter:blur(26px) saturate(150%);backdrop-filter:blur(26px) saturate(150%);color:var(--ink)}
 .lite .pane{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(16,24,46,.42)}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.pane{background:rgba(16,24,46,.42)}}
 .now{padding:24px 28px 18px;display:flex;flex-direction:column;min-height:0;min-width:0}
@@ -407,16 +409,19 @@ h2.who{gap:10px}
 .nbar{height:4px;border-radius:4px;background:rgba(255,255,255,.2);margin:14px 0 4px;overflow:hidden;flex:none}
 .nbar i{display:block;height:100%;background:var(--done);border-radius:4px;transition:width .4s ease}
 .now .pills{margin:10px 0 0}
-.now .list{flex:1;min-height:0;overflow:auto;margin:6px -8px 0;display:flex;flex-direction:column;gap:0;padding-bottom:24px;-webkit-mask-image:linear-gradient(#000 calc(100% - 36px),transparent);mask-image:linear-gradient(#000 calc(100% - 36px),transparent)}
-.now .ck{min-height:54px;padding:10px 8px;font-size:20px;border-bottom:1px solid rgba(255,255,255,.12);border-radius:0;align-items:center}
+.now .list{flex:1 1 auto;min-height:0;overflow:hidden;margin:6px -8px 0;display:flex;flex-direction:column;gap:0}
+.now .ck{flex:1 1 0;min-height:54px;max-height:76px;padding:10px 8px;font-size:20px;border-bottom:1px solid rgba(255,255,255,.12);border-radius:0;align-items:center}
 .now .ck:last-child{border-bottom:0}
 .now .ck .box{width:30px;height:30px}
 .now .ck .lbl{padding-top:0;font-weight:500}
 .now .ck small{font-size:15px}
-.now .alldone{padding:20px 0}
-.jcs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;flex:none}
+.now .ck[hidden]{display:none}
+.now .alldone{padding:18px 0 8px;flex:none}
+.jcs{display:flex;flex-wrap:nowrap;gap:8px;margin-top:12px;flex:none;overflow:hidden}
+.jc{flex:0 1 auto;min-width:0}
+.jc em{flex:none}
 .jcs::-webkit-scrollbar,.dock::-webkit-scrollbar{display:none}
-.jc{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;flex:none;border:0;padding:9px 14px;border-radius:16px;background:rgba(255,255,255,.12);font-size:15px;font-weight:600;cursor:pointer;min-height:44px;color:var(--ink)}
+.jc{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;flex:none;border:0;padding:9px 16px;border-radius:999px;background:rgba(255,255,255,.12);font-size:15px;font-weight:600;cursor:pointer;min-height:44px;color:var(--ink)}
 .jc em{font-style:normal;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
 .jc .d{width:8px;height:8px;border-radius:50%;flex:none}
 .jc.full{opacity:.62}
@@ -438,15 +443,15 @@ h2.who{gap:10px}
 .side{border:0;background:none;color:var(--muted);font:inherit;font-size:15px;font-weight:600;padding:10px 12px;border-radius:14px;cursor:pointer;min-height:48px}
 .side.confirm{background:var(--warn);color:#2a0d06}
 .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.hcard{display:flex;flex-direction:column;gap:3px;text-align:left;padding:16px 20px;min-height:88px;cursor:pointer;font:inherit;min-width:0}
+.hcard{display:flex;flex-direction:column;gap:3px;text-align:left;padding:16px 22px;min-height:104px;height:104px;justify-content:center;cursor:pointer;font:inherit;min-width:0}
 .hcard span{font-size:16px;color:var(--muted)}
-.hcard b{font-size:20px;font-weight:600;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.hcard b{font-size:20px;font-weight:600;line-height:1.25;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .hcard b.empty{color:var(--muted);font-weight:500}
 .hcard small{font-size:16px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sheet{bottom:calc(env(safe-area-inset-bottom, 0px) + 70px)}
+.sheet{top:calc(env(safe-area-inset-top, 0px) + 16px);bottom:calc(env(safe-area-inset-bottom, 0px) + 82px)}
 .dimmer{position:fixed;inset:0;z-index:70;background:#000;opacity:.45;animation:dimin 4s ease;cursor:pointer}
 @keyframes dimin{from{opacity:0}}
-.wkday{padding:12px 0;border-top:1px solid var(--line)}
+.wkday{padding:8px 0;border-top:1px solid var(--line)}
 .wkday:first-child{border-top:0;padding-top:0}
 .wkh{display:flex;align-items:baseline;gap:12px;width:100%;border:0;background:none;text-align:left;cursor:pointer;padding:4px 0 8px;font:inherit;color:inherit}
 .wkh b{font-family:"Outfit",var(--ui);font-weight:300;font-size:26px}
@@ -461,11 +466,11 @@ select option{color:#101a3a}
 .dtog label{display:inline-flex;align-items:center;gap:6px;background:var(--chip);border-radius:999px;padding:0 14px;min-height:44px;font-weight:600;cursor:pointer;text-transform:none;letter-spacing:0;font-size:15px;color:var(--ink)}
 .dtog input{width:20px;height:20px;accent-color:#fff}
 @media (max-width:980px){.hgrid,.hday{grid-template-columns:1fr}}
-.g-mid{display:flex;flex-direction:column;gap:10px;margin-top:auto;padding-top:16px}
+.g-mid{display:flex;flex-direction:column;gap:10px;margin-top:auto;padding-top:18px}
 .g-leave,.g-timer,.g-count{display:flex;align-items:baseline;gap:12px}
-.g-leave b,.g-timer b{font-family:"Outfit",var(--ui);font-weight:300;font-size:36px;line-height:1;font-variant-numeric:tabular-nums}
+.g-leave b,.g-timer b{font-family:"Outfit",var(--ui);font-weight:300;font-size:32px;line-height:1;font-variant-numeric:tabular-nums}
 .g-leave span,.g-timer span,.g-count span{font-size:17px;color:var(--muted)}
-.g-count b{font-size:20px;font-weight:600}
+.g-count b{font-family:"Outfit",var(--ui);font-weight:300;font-size:32px;line-height:1}
 .g-timer .tadd{margin-left:auto;border:0;border-radius:999px;background:rgba(255,255,255,.16);color:var(--ink);font:inherit;font-weight:700;min-width:48px;min-height:48px;cursor:pointer}
 .g-timer .tadd+.tadd{margin-left:0}
 .g-tbtns{display:flex;align-items:center;gap:6px}
@@ -480,16 +485,66 @@ select option{color:#101a3a}
 .tmrh span{margin-left:8px;opacity:.85}
 .tmr .row{padding:6px 4px;font-size:17px}
 .tmr .row span{font-size:15px}
-.now .list.bed{flex:1 1 auto;margin-top:4px}
+.now .list.bed{flex:0 1 auto;margin-top:4px}
+.now .list .more{flex:none;align-self:flex-start;margin:8px 8px 0}
+.now .jcs{margin-top:auto;padding-top:12px}
 .g-sky[hidden]{display:none}
-.cards.slim .hcard{min-height:0;flex-direction:row;align-items:baseline;gap:10px;padding:14px 20px}
-.cards.slim .hcard small{display:none}
-.cards.slim .hcard span{white-space:nowrap;flex:none;font-size:15px}
-.cards.slim .hcard b{font-size:18px}
-.cards.slim .hcard b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 input[type=time]{font:inherit;color:var(--ink);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:10px 12px;min-height:48px;width:100%;color-scheme:dark}
 .scan video{width:100%;max-height:52vh;border-radius:18px;background:#000;object-fit:cover;display:block}
 #scanbox[hidden]{display:none}
+/* ---------- refinement: tighter frame, finer edges, quieter ornament ---------- */
+:root{--r-lg:20px;--r-md:14px}
+.home{gap:24px;padding:4px 0 0}
+.act{gap:12px;padding-top:4px}
+.pane{border-color:rgba(255,255,255,.16);background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.04)),rgba(18,30,70,.28);-webkit-backdrop-filter:blur(30px) saturate(140%);backdrop-filter:blur(30px) saturate(140%)}
+.now{padding:20px 22px 16px}
+.nowh h1{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.nbar{height:2px;margin:12px 0 2px;background:rgba(255,255,255,.14)}
+.now .list{margin:4px -6px 0}
+.now .ck{padding:9px 6px;min-height:52px;font-size:19px;border-bottom-color:rgba(255,255,255,.09)}
+.now .ck .lbl{font-weight:400}
+.ck .box,.now .ck .box{width:24px;height:24px;border-width:1.5px;border-color:rgba(255,255,255,.55)}
+.ck .box svg{width:14px;height:14px}
+.cards{gap:12px}
+.hcard{padding:14px 18px;min-height:100px;height:100px;gap:2px}
+.hcard span,.hcard small{line-height:1.3}
+.hcard b{line-height:1.3}
+.ambient .time{font-family:"Outfit",var(--ui);font-weight:200;letter-spacing:-.04em}
+.ambient .time .ap{font-weight:300}
+.ambient .date{font-weight:400}
+.amb-card{border-radius:var(--r-lg)}
+.amb-card .eyebrow{text-transform:none;letter-spacing:0;font-size:15px;font-weight:500}
+.amb-card .focus{font-family:"Outfit",var(--ui);font-weight:300;font-size:30px}
+.amb-card .ev .tm{font-weight:500}
+.amb-card .ev .tt{font-weight:500}
+.hcard span,.g-sky,.g-tip,.nowh .sub{letter-spacing:.005em}
+.hcard b{font-weight:500}
+.jcs{gap:6px}
+.jc{border-radius:12px;padding:0 14px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);font-weight:500;font-size:14px}
+.jc .d{width:6px;height:6px}
+.jc.more{background:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+.side{font-weight:500;font-size:14px}
+.dock{border-radius:16px;padding:3px}
+.dock button{border-radius:12px;font-weight:500}
+.dock button[aria-current="true"]{background:rgba(255,255,255,.14)}
+.g-wx svg,.g-strip svg{filter:saturate(0) brightness(1.7)}
+.g-wx{margin-top:24px}
+.g-strip{margin-top:4px;padding:6px 0}
+.g-strip b{font-weight:500}
+.g-seg button{border-radius:10px;font-weight:500}
+.g-tbtns button{border-radius:12px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);font-weight:500;min-width:44px}
+.g-timer .tadd{border-radius:12px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);font-weight:500}
+.g-count b{font-size:28px}
+.g-leave b,.g-timer b{font-size:30px}
+.undo{border-radius:14px}
+.undo button{border-radius:10px}
+.sheet{border-radius:var(--r-lg)}
+.iconbtn{background:rgba(255,255,255,.08)}
+/* touch targets */
+.jc,.chip,.pillbtn,.addrow button,.undo button,.dock button{min-height:48px}
+.seg button,.g-seg button,.pillbtn.sm{min-height:44px}
+.jc.more{background:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+.g-leave.go b{color:#FFB4A6}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -546,6 +601,7 @@ function merge(a,b){for(const k in b){if(isObj(b[k])&&isObj(a[k]))merge(a[k],b[k
 const nest=(key,val)=>key.split('.').reduceRight((acc,k)=>({[k]:acc}),val);
 const dig=(o,key)=>key.split('.').reduce((a,k)=>a==null?undefined:a[k],o);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const ancWeek=(a,d)=>a.days.length>1&&a.days[1]<a.days[0]&&dowOf(d)===a.days[0]?mondayOf(addDays(d,1)):mondayOf(d);
 function prepKey(date){const w=dowOf(date),sc=P.sched,wk=w===6?mondayOf(addDays(date,1)):mondayOf(date);if(sc.prep1.includes(w))return wk+'-s1';if(sc.prep2.includes(w))return wk+'-s2';return null}
 const cnt=(items,map)=>items.filter(i=>map&&map[i[0]]).length;
 const fmtTime=ms=>new Date(ms).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}).replace(':00','').toLowerCase();
@@ -573,8 +629,10 @@ function makeLocal(){
 }
 let store=null,shared=false;
 const C={},Q={},T=new Set();
-const S={today:iso(new Date()),sel:iso(new Date()),sheet:null,err:null,ready:false,wake:null,lite:lsGet('hub-lite','0')==='1',skyMode:lsGet('hub-sky','live'),q:null,addDest:'buy',group:null,amb:false,ambOn:lsGet('hub-amb','1')==='1',darkOn:lsGet('hub-dark','1')==='1',timers:(()=>{try{return JSON.parse(lsGet('hub-timers','[]')).filter(t=>t&&t.end>Date.now())}catch(e){return []}})(),ring:null,dimOn:lsGet('hub-dim','1')==='1',dim:false,shiftI:0,mail:null,flash:null};
+const S={today:iso(new Date()),sel:iso(new Date()),sheet:null,err:null,ready:false,wake:null,lite:lsGet('hub-lite','0')==='1',skyMode:lsGet('hub-sky','live'),q:null,addDest:'buy',group:null,amb:false,ambOn:lsGet('hub-amb','1')==='1',darkOn:lsGet('hub-dark','1')==='1',timers:(()=>{try{return JSON.parse(lsGet('hub-timers','[]')).filter(t=>t&&t.end>Date.now()-120000)}catch(e){return []}})(),ring:null,dimOn:lsGet('hub-dim','1')==='1',dim:false,shiftI:0,mail:null,flash:null};
 let lastAct=Date.now(),swallow=false;
+// after a reload in the night, go straight back to the night clock instead of lighting the screen
+if(S.ambOn&&(new Date().getHours()>=21||new Date().getHours()<5)&&!S.timers.length){S.amb=true;lastAct=Date.now()-180000}
 function errText(e){const c=e&&e.code;
   if(c==='quota_exceeded')return 'Storage is full. Clear some finished list items.';
   if(c==='revoked'||c==='not_granted')return 'Can’t save right now. Reload to try again.';
@@ -795,7 +853,7 @@ const seg=v=>'<div class="g-seg" role="group" aria-label="Forecast"><button data
 function wxGlance(){
   if(!WX)return '<div class="g-wx"><div class="c"><b>'+(WXstate==='noloc'?'Add your ZIP in Settings › Household':WXstate==='loading'?'Loading the weather…':WXstate==='offline'?'Can’t reach the weather service':'Weather shows on the tablet')+'</b>'+(WXstate==='offline'?'Trying again soon.':'')+'</div></div>';
   const c=WX.current,l=WMO(c.weather_code),d=WX.daily,hr=WX.hourly,ti=todayIdx(),ahead=lookAhead(),view=S.wxView||(ahead?'days':'hours');
-  const hl=ti<0?'':ahead&&ti+1<d.time.length?'Tomorrow '+rnd(d.temperature_2m_max[ti+1])+'°, low '+rnd(d.temperature_2m_min[ti+1])+'°':'High '+rnd(d.temperature_2m_max[ti])+'°, low '+rnd(d.temperature_2m_min[ti])+'°';
+  const hl=ti<0?'':ahead&&ti+1<d.time.length?'Low tonight '+rnd(d.temperature_2m_min[ti+1])+'°':'High '+rnd(d.temperature_2m_max[ti])+'°, low '+rnd(d.temperature_2m_min[ti])+'°';
   let h='<div class="g-wx">'+icon(l[1],c.is_day!==0)+'<div class="t">'+rnd(c.temperature_2m)+'°</div><div class="c"><b>'+esc(l[0])+'</b>'+hl+'</div></div>',cells='';
   if(view==='days'&&ti>=0){for(let i=ti+1;i<=ti+5&&i<d.time.length;i++){const pp=d.precipitation_probability_max[i]||0;
       cells+='<span class="cell"><span>'+DAYS[dowOf(d.time[i])].name.slice(0,3)+'</span>'+icon(WMO(d.weather_code[i])[1],true)+'<b>'+rnd(d.temperature_2m_max[i])+'°</b><span class="lo">'+rnd(d.temperature_2m_min[i])+'°</span><span class="pp">'+(pp>=20?pp+'%':'')+'</span></span>'}
@@ -806,56 +864,67 @@ function wxGlance(){
       h+=seg('hours')+'<button class="g-strip" data-act="wxview" data-v="days" aria-label="Next hours. Tap for the next five days.">'+cells+'</button>'}}
   return h}
 // the clothing tip is about the walk to school: name the 8 am temperature of the day it covers
-function tipView(){if(!WX)return '';const ahead=lookAhead(),t=new Date();if(!ahead&&t.getHours()+t.getMinutes()/60>=10.5)return '';const hint=dressHint(ahead?1:0);if(!hint)return '';
+function tipView(){if(!WX)return '';const ahead=lookAhead(),t=new Date();if(!ahead&&t.getHours()+t.getMinutes()/60>=10.5)return '';if(S.timers.length&&leaveInfo())return '';const hint=dressHint(ahead?1:0);if(!hint)return '';
   const hr=WX.hourly,am=hr&&hr.time?hr.time.indexOf((ahead?addDays(S.today,1):S.today)+'T08:00'):-1;
   const lead=(ahead?'Tomorrow, ':'')+(am>=0?rnd(hr.temperature_2m[am])+'° at drop-off.':'');
   return '<div class="g-tip">'+SHIRT+'<div>'+(lead?'<b>'+lead+'</b> ':'')+esc(hint)+'.</div></div>'}
 function glanceView(){const ahead=lookAhead(),ND=DAYS[dowOf(addDays(S.today,1))],D=DAYS[dowOf(S.today)];
   return '<section class="glance" aria-label="Time and weather"><div class="g-date">'+parse(S.today).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</div>'+
     '<div class="g-time" id="time">'+clockHTML()+'</div>'+
-    '<div class="g-focus">'+(tomorrowMode()?esc(D.focus):ahead?'Tomorrow: '+esc(ND.focus.charAt(0).toLowerCase()+ND.focus.slice(1)):esc(D.focus))+'</div>'+
+    (tomorrowMode()?'':'<div class="g-focus">'+(ahead?'Tomorrow: '+esc(ND.focus.charAt(0).toLowerCase()+ND.focus.slice(1)):'Today: '+esc(D.focus.charAt(0).toLowerCase()+D.focus.slice(1)))+'</div>')+
     wxGlance()+(tomorrowMode()?'':tipView())+'<div class="g-mid" id="gmid">'+midView()+'</div><div class="g-sky" id="sun"'+(S.timers.length||leaveInfo()?' hidden':'')+'>'+sunBlock()+'</div></section>'}
 
 /* ---------- kitchen timers, the leave-the-house countdown, and dated countdowns ---------- */
 const fmtLeft=ms=>{const t=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60;return (h?h+':'+pad(m):m)+':'+pad(x)};
-function leaveInfo(){const sc=P.sched;if(!sc.leave||!(sc.school||[]).includes(dowOf(S.today)))return null;const [H,M]=sc.leave.split(':').map(Number),t=parse(S.today);t.setHours(H,M,0,0);
-  const left=t-Date.now();return left>0&&left<=60*60000?{left,label:P.leaveLabel||'Leave the house'}:null}
+function leaveInfo(){const sc=P.sched;if(!sc.leave||!(sc.school||[]).includes(dowOf(S.today))||dayData(S.today).sideways)return null;
+  if(CAL.events.some(e=>e.day===S.today&&e.cat==='hol'))return null;
+  const [H,M]=sc.leave.split(':').map(Number),t=parse(S.today);t.setHours(H,M,0,0);
+  const left=t-Date.now();return left>-5*60000&&left<=60*60000?{left,label:P.leaveLabel||'Leave the house'}:null}
 function countdowns(){return lines(P.events,'v').map(r=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(r[1]);if(!m)return null;const days=Math.round((parse(r[1])-parse(S.today))/864e5);return days>=0&&days<=60?{days,name:r[2]||'Countdown'}:null}).filter(Boolean).sort((a,b)=>a.days-b.days).slice(0,2)}
 function midView(){let h='';const lv=leaveInfo();
-  if(lv)h+='<div class="g-leave"><b id="gleave">'+Math.ceil(lv.left/60000)+' min</b><span>to '+esc(lv.label.charAt(0).toLowerCase()+lv.label.slice(1))+'</span></div>';
-  S.timers.forEach(tm=>{h+='<div class="g-timer"><b id="tm-'+tm.id+'">'+fmtLeft(tm.end-Date.now())+'</b><span>'+esc(tm.label)+'</span><button class="tadd" data-act="tplus" data-id="'+tm.id+'" aria-label="Add a minute">+1</button><button class="tadd" data-act="tstop" data-id="'+tm.id+'" aria-label="Cancel timer">×</button></div>'});
+  if(lv)h+=lv.left>0?'<div class="g-leave"><b id="gleave">'+Math.ceil(lv.left/60000)+' min</b><span>to '+esc(lv.label.charAt(0).toLowerCase()+lv.label.slice(1))+'</span></div>'
+    :'<div class="g-leave go"><b>Time to go</b><span>'+esc(lv.label)+'</span></div>';
+  S.timers.forEach(tm=>{h+='<div class="g-timer"><b id="tm-'+tm.id+'">'+fmtLeft(tm.end-Date.now())+'</b><span>'+esc(tm.label)+'</span><button class="tadd" data-act="tplus" data-id="'+tm.id+'" aria-label="Add a minute">+1 min</button><button class="tadd" data-act="tstop" data-id="'+tm.id+'" aria-label="Cancel timer">×</button></div>'});
   if(!S.timers.length)countdowns().forEach(c=>{h+='<div class="g-count"><b>'+(c.days===0?'Today':c.days===1?'Tomorrow':c.days+' days')+'</b><span>'+(c.days>1?'until ':'')+esc(c.name)+'</span></div>'});
-  h+='<div class="g-tbtns" role="group" aria-label="Start a timer"><span>Timer</span>'+[1,5,10,15,30].map(m=>'<button data-act="tstart" data-m="'+m+'">'+m+'</button>').join('')+'</div>';
+  h+='<div class="g-tbtns" role="group" aria-label="Start a timer"><span>Timer</span>'+[1,5,10,15,30].map(m=>'<button data-act="tstart" data-m="'+m+'" aria-label="'+m+' minute timer">'+m+(m===1?' min':'')+'</button>').join('')+'</div>';
   return h}
+function refreshMid(){const gm=document.getElementById('gmid'),sky=document.getElementById('sun');if(!gm)return;const h=midView();
+  if(h.replace(/<b id="tm-[^"]+">[^<]*<\/b>/g,'')!==(gm._sig||'')){gm.innerHTML=h;gm._sig=h.replace(/<b id="tm-[^"]+">[^<]*<\/b>/g,'')}
+  if(sky)sky.hidden=!!(S.timers.length||leaveInfo())}
 let actx=null;
 function beep(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.type='sine';o.frequency.value=880;
   g.gain.setValueAtTime(.0001,actx.currentTime);[0,.35,.7].forEach(t=>{g.gain.exponentialRampToValueAtTime(.4,actx.currentTime+t+.02);g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+t+.28)});
   o.connect(g).connect(actx.destination);o.start();o.stop(actx.currentTime+1.05)}catch(e){}}
 function saveTimers(){lsSet('hub-timers',JSON.stringify(S.timers))}
-function timerTick(){if(!S.timers.length&&!S.ring)return;const now=Date.now();
+function timerTick(){const lv=leaveInfo(),lk=lv?(lv.left>0?Math.ceil(lv.left/60000):'go'):'';if(lk!==S._lk){const first=S._lk===undefined;S._lk=lk;if(!first)refreshMid()}
+  if(!S.timers.length&&!S.ring)return;const now=Date.now();
   S.timers.forEach(tm=>{const n=document.getElementById('tm-'+tm.id);if(n)n.textContent=fmtLeft(tm.end-now)});
   const due=S.timers.filter(tm=>tm.end<=now);
   if(due.length){S.timers=S.timers.filter(tm=>tm.end>now);saveTimers();S.ring={label:due[0].label,until:now+120000};S.amb=false;S.dim=false;lastAct=now;render()}
   if(S.ring){if(now>S.ring.until){S.ring=null;render()}else if(now%2000<1000)beep()}}
 
 const CHECK_BIG='<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="var(--done)" opacity=".22"/><circle cx="32" cy="32" r="22" fill="var(--done)"/><path d="M21 33l7.5 7.5L44 25" fill="none" stroke="#0E2A1C" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-function fixItem(it,d){return it[0]==='e6'&&dowOf(d)===0?[it[0],'Trash check: garbage goes out tomorrow']:it}
+function fixItem(it,d){return it[0]==='e6'&&dowOf(d)===(P.sched.trash+6)%7?[it[0],'Trash check: garbage goes out tomorrow']:it}
 // After 7:30 pm with the evening list done, or after 9 pm, the pane gets tomorrow ready instead.
 function tomorrowMode(){const t=new Date(),d=S.today,done=dayData(d).done||{},ev=ROUTINE[2].items;return lookAhead(t)&&!dayData(d).sideways&&(t.getHours()>=21||cnt(ev,done)===ev.length)}
 function tomorrowPane(){const tm=addDays(S.today,1),D=DAYS[dowOf(tm)],pl=((weekData(mondayOf(tm)).plan||{})[D.k])||{},d=S.today,done=dayData(d).done||{},rows=[];
   // before bed: whatever is still open from the evening, plus tonight's household jobs you can tick here
-  const ev=ROUTINE[2].items.map(it=>fixItem(it,d)).filter(it=>!done[it[0]]),mon=mondayOf(d),tonight=householdEvents(d,'Today').filter(x=>x.tm==='Tonight');
-  let bed=ev.map(i=>ck(false,'tday','data-d="'+d+'" data-id="'+i[0]+'"',i[1],i[2])).join('');
-  tonight.forEach(x=>{if(x.cat==='bins'&&CURB)bed=ck(false,'tanc','data-m="'+mon+'" data-a="garbage" data-id="'+CURB+'"',x.title)+bed;
-    else if(x.cat==='clean')bed+='<button class="jc" data-act="opengroup" data-g="anc:cleaner" data-d="'+d+'" style="margin:8px 0 0">'+esc(x.title)+' ›</button>'});
-  householdEvents(tm,'Tomorrow').forEach(x=>rows.push([x.tm==='Tonight'?D.name.slice(0,3)+' night':x.tm==='Today'||x.tm==='Tomorrow'?D.name.slice(0,3):x.tm||'',x.title]));
+  const tonight=householdEvents(d,'Today').filter(x=>x.tm==='Tonight'),binsTonight=tonight.some(x=>x.cat==='bins');
+  // the evening "trash check" is the same job as the bins row, so it steps aside on trash night
+  const ev=ROUTINE[2].items.map(it=>fixItem(it,d)).filter(it=>!done[it[0]]&&!(binsTonight&&it[0]==='e6'));
+  let bed=ev.map(i=>ck(false,'tday','data-d="'+d+'" data-id="'+i[0]+'"',i[1],i[2])).join(''),open=ev.length;
+  const grp=k=>jobGroups(d).find(g=>g.key==='anc:'+k);
+  tonight.forEach(x=>{if(x.cat==='bins'&&CURB){bed=ck(false,'tanc','data-m="'+ancWeek(ANCHORS[0],d)+'" data-a="garbage" data-id="'+CURB+'"',x.title)+bed;open++}});
+  const chips=['garbage','cleaner'].map(grp).filter(g=>g&&g.n<g.of).map(g=>{open++;return '<button class="jc" data-act="opengroup" data-g="'+g.key+'" data-d="'+d+'">'+esc(g.t)+' <em>'+g.n+' of '+g.of+'</em></button>'}).join('');
+  if(!open)bed='';
+  householdEvents(tm,'Tomorrow').filter(x=>!(binsTonight&&x.cat==='bins')).forEach(x=>rows.push([x.tm==='Tonight'?D.name.slice(0,3)+' night':x.tm==='Today'||x.tm==='Tomorrow'?D.name.slice(0,3):x.tm||'',x.title]));
   const hint=WX?dressHint(1):'',hr=WX&&WX.hourly,am=hr&&hr.time?hr.time.indexOf(tm+'T08:00'):-1;
   if(hint)rows.push(['Clothes',(am>=0?rnd(hr.temperature_2m[am])+'° at drop-off. ':'')+hint]);
   if(pl.must)rows.push(['Must happen',pl.must]);
-  return '<section class="pane now" aria-label="Tonight and tomorrow"><header class="nowh"><div class="ttl"><h1>'+(bed?'Before bed':'All set for tonight')+'</h1><span class="sub">'+(bed?'then tomorrow is ready':'nothing left to do')+'</span></div></header><div class="nbar" style="opacity:0"></div>'+
+  return '<section class="pane now" aria-label="Tonight and tomorrow"><header class="nowh"><div class="ttl"><h1>'+(open?'Before bed':'All set for tonight')+'</h1><span class="sub">'+(open?'then tomorrow is ready':'nothing left to do')+'</span></div></header><div class="nbar" style="opacity:0"></div>'+
     (bed?'<div class="list bed">'+bed+'</div>':'')+
     '<div class="tmrh">Tomorrow, '+esc(D.name)+'<span>'+esc(D.focus.toLowerCase())+'</span></div><div class="tmr">'+rows.map(r=>'<div class="row"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('')+'</div>'+
-    '<div class="jcs" style="margin-top:auto;padding-top:10px"><button class="jc" data-act="openday" data-d="'+d+'">Tonight’s full list ›</button><button class="jc" data-act="open" data-s="plan">Plan the week</button></div></section>'}
+    '<div class="jcs">'+chips+'<button class="jc" data-act="openday" data-d="'+d+'">Tonight’s full list ›</button></div></section>'}
 function nowPane(){if(tomorrowMode())return tomorrowPane();const t=new Date(),d=S.today,day=dayData(d),done=day.done||{},att=id=>'data-d="'+d+'" data-id="'+id+'"';
   const plan=(weekData(mondayOf(d)).plan||{})[DAYS[dowOf(d)].k]||{};
   let head,list,n,of;
@@ -869,12 +938,13 @@ function nowPane(){if(tomorrowMode())return tomorrowPane();const t=new Date(),d=
     list=n===of&&!carry.length?'<div class="alldone">'+CHECK_BIG+'<b>'+esc(r.title)+' is done</b><span class="muted">'+esc(ri<2?'Next: '+ROUTINE[ri+1].title+' at '+(ri===0?'11 am':'4 pm'):'Tomorrow starts with the morning list')+'</span></div>'
       :carry.map(([it,src])=>ck(false,'tday',att(it[0]),it[1],'Left from '+src.toLowerCase()).replace('class="ck','class="ck carry')).join('')+items.map(i=>ck(done[i[0]],'tday',att(i[0]),i[1],i[2])).join('')}
   const chips=(plan.must?'<button class="jc must" data-act="qedit" data-k="must" data-d="'+d+'">'+esc(plan.must)+'</button>':'<button class="jc add" data-act="qedit" data-k="must" data-d="'+d+'">+ Must-do</button>')+
-    jobGroups(d).map(x=>{const o=ownerOf(x.key),full=x.n===x.of;return '<button class="jc'+(full?' full':'')+'" data-act="opengroup" data-g="'+x.key+'" data-d="'+d+'">'+(o?av(o,'sm'):'<span class="d" style="background:'+CATC[x.cat]+'"></span>')+esc(x.t)+' <em>'+(full?'done':x.n+' of '+x.of)+'</em></button>'}).join('');
+    // one row: unfinished groups first, as many as fit, the rest behind "+N more" (opens Chores)
+    (gs=>gs.slice(0,2).concat(gs.length>2?[{more:gs.length-2}]:[]))(jobGroups(d).sort((a,b)=>(a.n===a.of)-(b.n===b.of))).map(x=>{if(x.more)return '<button class="jc more" data-act="openday" data-d="'+d+'">+'+x.more+' more ›</button>';const o=ownerOf(x.key),full=x.n===x.of;return '<button class="jc'+(full?' full':'')+'" data-act="opengroup" data-g="'+x.key+'" data-d="'+d+'">'+(o?av(o,'sm'):'<span class="d" style="background:'+CATC[x.cat]+'"></span>')+esc(x.t)+' <em>'+(full?'done':x.n+' of '+x.of)+'</em></button>'}).join('');
   const side='<button class="side'+(S.sideAsk?' confirm':'')+'" data-act="sideask">'+(day.sideways?'Back to the full list':S.sideAsk?'Tap again: essentials only':'Day going sideways?')+'</button>';
   return '<section class="pane now" aria-label="Right now"><header class="nowh">'+head+'<span class="prog">'+n+' of '+of+'</span>'+side+'</header>'+
     '<div class="nbar"><i style="width:'+(of?Math.round(100*n/of):0)+'%"></i></div>'+pillsRow()+
     '<div class="list">'+list+'</div><div class="jcs" role="group" aria-label="Also today">'+chips+'</div></section>'}
-function householdEvents(day,label){const out=[],w=dowOf(day),mon=mondayOf(day),wk=weekData(mon),visits=wk.visits||[],anc=k=>((wk.anchors||{})[k]||{});
+function householdEvents(day,label){const out=[],w=dowOf(day),mon=mondayOf(day),wk=weekData(mon),visits=wk.visits||[],anc=k=>((weekData(ancWeek(ANCHORS.find(a=>a.k===k)||ANCHORS[0],day)).anchors||{})[k]||{});
   const sc=P.sched,prev=d=>(d+6)%7,curb=!!anc('garbage')[CURB];
   if(w===prev(sc.trash)&&!curb)out.push({cat:'bins',tm:'Tonight',title:'Bins to the curb'});
   if(w===sc.trash){if(!curb)out.push({cat:'bins',tm:'Morning',title:'Bins out, if they didn’t go last night'});else out.push({cat:'bins',tm:'Today',title:'Trash day · bring bins back in'})}
@@ -891,7 +961,7 @@ function mealCard(){const t=new Date(),hr=t.getHours()+t.getMinutes()/60,ahead=l
   const d=ahead?addDays(S.today,1):S.today,D=DAYS[dowOf(d)],plan=(weekData(mondayOf(d)).plan||{})[D.k]||{};
   const nx=addDays(d,1),nplan=(weekData(mondayOf(nx)).plan||{})[DAYS[dowOf(nx)].k]||{};
   // lunch only matters until it's packed and gone: show it in the morning (today's) and the evening (tomorrow's)
-  const sub=ahead||morning?'Kids’ lunch: '+(plan.lunch?esc(plan.lunch):'not planned yet'):plan.dinner?'Anything to defrost?':'Decide by 4 pm';
+  const sub=ahead||morning?'Kids’ lunch: '+(plan.lunch?esc(plan.lunch):'not planned yet'):plan.dinner?(hr<16?'Anything to defrost?':'Tonight'):(hr<16?'Decide by 4 pm':'Leftovers or something easy?');
   return '<button class="pane hcard" data-act="qedit" data-k="dinner" data-d="'+d+'"><span>'+(ahead?'Tomorrow’s dinner':'Dinner tonight')+'</span>'+(plan.dinner?'<b>'+esc(plan.dinner)+'</b>':'<b class="empty">+ Add dinner</b>')+'<small>'+sub+'</small></button>'}
 function nextCard(){const now=Date.now(),ahead=lookAhead(),tm=addDays(S.today,1);
   const cal=d=>CAL.events.filter(e=>e.day===d&&(d!==S.today||(!e.allDay&&(e.endMs||e.startMs)>=now)||(e.allDay&&!ahead))).sort(byStart).map(e=>({t:e.title,s:(e.allDay?'All day':fmtTime(e.startMs))+(e.location?', '+e.location:'')}));
@@ -915,7 +985,7 @@ function weekView(){let h='';
 
 function jobGroups(d){const w=dowOf(d),D=DAYS[w],mon=mondayOf(d),wk=weekData(mon),done=dayData(d).done||{},g=[];
   if(D.tasks.length)g.push({key:'tasks',t:D.name+' must-dos',n:cnt(D.tasks,done),of:D.tasks.length,cat:'day'});
-  ANCHORS.forEach(a=>{if(a.days.includes(w))g.push({key:'anc:'+a.k,t:a.title,n:cnt(a.items,(wk.anchors||{})[a.k]),of:a.items.length,cat:a.cat})});
+  ANCHORS.forEach(a=>{if(a.days.includes(w))g.push({key:'anc:'+a.k,t:a.title,n:cnt(a.items,(weekData(ancWeek(a,d)).anchors||{})[a.k]),of:a.items.length,cat:a.cat})});
   const visits=(wk.visits||[]).slice().sort();if(visits.includes(w)){const vk='v'+(visits.indexOf(w)+1);g.push({key:'hm',t:P.names.helper+' visit',n:cnt(MGR,((wk.visitLog||{})[vk]||{}).done),of:MGR.length,cat:'hm'})}
   const pk=prepKey(d);if(pk)g.push({key:'prep',t:'Meal prep',n:cnt(PREP,(C['prep/'+pk]||{}).done),of:PREP.length,cat:'prep'});
   g.push({key:'laundry',t:'Laundry loop',n:cnt(LAUNDRY,done),of:LAUNDRY.length,cat:'laundry'});return g}
@@ -939,7 +1009,7 @@ function card(title,sub,items,doneMap,act,attrsFn,cls){const n=cnt(items,doneMap
     items.map(i=>ck((doneMap||{})[i[0]],act,attrsFn(i[0]),i[1],i[2])).join('')+'</div></section>'}
 function cardsFor(d){const w=dowOf(d),D=DAYS[w],mon=mondayOf(d),wk=weekData(mon),done=dayData(d).done||{},visits=(wk.visits||[]).slice().sort(),att=id=>'data-d="'+d+'" data-id="'+id+'"',out=[];
   if(D.tasks.length)out.push({key:'tasks',html:card(D.name+' must-dos',D.focus,D.tasks,done,'tday',att)});
-  ANCHORS.forEach(a=>{const i=a.days.indexOf(w);if(i<0)return;out.push({key:'anc:'+a.k,html:card(a.title,[a.when[i],a.note].filter(Boolean).join(' · '),a.items,(wk.anchors||{})[a.k],'tanc',id=>'data-m="'+mon+'" data-a="'+a.k+'" data-id="'+id+'"','c-'+a.cat)})});
+  ANCHORS.forEach(a=>{const i=a.days.indexOf(w);if(i<0)return;out.push({key:'anc:'+a.k,html:card(a.title,[a.when[i],a.note].filter(Boolean).join(' · '),a.items,(weekData(ancWeek(a,d)).anchors||{})[a.k],'tanc',id=>'data-m="'+ancWeek(a,d)+'" data-a="'+a.k+'" data-id="'+id+'"','c-'+a.cat)})});
   if(visits.includes(w)){const vk='v'+(visits.indexOf(w)+1),L=(wk.visitLog||{})[vk]||{};out.push({key:'hm',html:card(P.names.helper+' visit',L.project?'Project: '+L.project:'5–6 hours. Set a project in House manager.',MGR,L.done,'tmgr',id=>'data-m="'+mon+'" data-v="'+vk+'" data-id="'+id+'"','c-hm')})}
   const pk=prepKey(d);if(pk){const s1=pk.endsWith('s1');out.push({key:'prep',html:card('Meal prep · session '+(s1?'1':'2'),(s1?P.sched.prep1:P.sched.prep2).map(x=>DN[x]).join(' or ')+'. Twice a week is enough.',PREP,(C['prep/'+pk]||{}).done,'tprep',id=>'data-k="'+pk+'" data-id="'+id+'"','c-prep')})}
   out.push({key:'laundry',html:card('Laundry loop','No pile-ups',LAUNDRY,done,'tday',att)});
@@ -1040,7 +1110,7 @@ function houseView(){const sc=P.sched,dsel=(id,v,none)=>'<select id="'+id+'">'+(
   const dtog=(id,arr)=>'<div class="dtog" id="'+id+'">'+DN.map((n,i)=>'<label><input type="checkbox" value="'+i+'"'+(arr.includes(i)?' checked':'')+'>'+n.slice(0,3)+'</label>').join('')+'</div>';
   const ta=(id,lab,v,hint)=>'<div class="field"><label for="'+id+'">'+lab+'</label><textarea id="'+id+'" rows="4">'+esc(v||'')+'</textarea>'+(hint?'<div class="note">'+hint+'</div>':'')+'</div>';
   const tx=(id,lab,v,ph)=>'<div class="field"><label for="'+id+'">'+lab+'</label><input type="text" id="'+id+'" value="'+esc(v||'')+'" placeholder="'+(ph||'')+'"></div>';
-  return '<p class="note">Saved only on this tablet. One item per line. Add a note after a bar: <b>Kitchen cleaned | counters, stove, sink</b>.</p>'+
+  return '<p class="note">One item per line. Add a note after a bar: <b>Kitchen cleaned | counters, stove, sink</b>.</p>'+
     '<section class="card"><h3>Where and when</h3><div class="hgrid">'+tx('h-zip','ZIP code for weather',LOC?LOC.label:'','e.g. 60614')+
     '<div class="field"><label for="h-trash">Trash pickup day</label>'+dsel('h-trash',sc.trash)+'</div>'+
     '<div class="field"><label for="h-cleaner">Cleaner comes</label>'+dsel('h-cleaner',sc.cleaner,1)+'</div>'+
@@ -1110,14 +1180,26 @@ function calSheet(){const el=document.getElementById('calsheet');const show=S.sh
   el.hidden=!show}
 
 /* ================= render ================= */
+// A list shows whole rows only: rows that don't fit are hidden behind a "+N more" link to Chores.
+function fitLists(){document.querySelectorAll('.now .list').forEach(L=>{const rows=[...L.children].filter(n=>n.classList.contains('ck'));if(!rows.length)return;
+  rows.forEach(r=>r.hidden=false);const old=L.querySelector('.more');if(old)old.remove();if(L.scrollHeight<=L.clientHeight+1)return;
+  const room=L.clientHeight-52;let shown=0;for(const r of rows){if(r.offsetTop-L.offsetTop+r.offsetHeight<=room)shown++;else break}
+  rows.slice(Math.max(1,shown)).forEach(r=>r.hidden=true);const n=rows.length-Math.max(1,shown);
+  L.insertAdjacentHTML('beforeend','<button class="jc add more" data-act="openday" data-d="'+S.today+'">+'+n+' more ›</button>')})}
+addEventListener('resize',()=>requestAnimationFrame(fitLists));
+// a chip row that is wider than the pane drops its last job chips into the "+N more" count
+function fitChips(){document.querySelectorAll('.now .jcs').forEach(R=>{let guard=6;while(R.scrollWidth>R.clientWidth+1&&guard--){const more=R.querySelector('.jc.more'),jobs=[...R.querySelectorAll('.jc[data-act="opengroup"]')];if(!jobs.length)break;
+  jobs[jobs.length-1].remove();if(more){more.textContent='+'+(parseInt(more.textContent.slice(1))+1)+' more ›'}else{const side=R.querySelector('.side');(side||null);R.insertAdjacentHTML('beforeend','<button class="jc more" data-act="openday" data-d="'+S.today+'">+1 more ›</button>')}}})}
+
 const app=document.getElementById('app');
 function render(){
   const a=document.activeElement,id=a&&a.id,txt=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA');let val,ss,se;
   if(txt){val=a.value;try{ss=a.selectionStart;se=a.selectionEnd}catch(e){}}
   const sb=document.getElementById('sheetbody'),sbTop=sb?sb.scrollTop:0,prevSheet=S._lastSheet;
-  app.innerHTML='<main class="home">'+glanceView()+'<div class="act">'+nowPane()+'<div class="cards'+(new Date().getHours()+new Date().getMinutes()/60<10.5&&!tomorrowMode()?' slim':'')+'">'+mealCard()+nextCard()+'</div></div></main>'+dock()+sheetView()+
-    (S.err?'<div class="status glass" role="status">'+esc(S.err)+'</div>':battNote())+(S.undo?'<div class="status glass undo" role="status">Checked “'+esc(S.undo.label.slice(0,48))+'”<button data-act="undo">Undo</button></div>':'')+(S.amb?ambientView():'')+(S.dim&&!S.amb?'<div class="dimmer" aria-hidden="true"></div>':'')+(S.ring?'<div class="alarm" data-act="ringoff" role="alertdialog" aria-label="Timer done"><b>Time’s up</b><span>'+esc(S.ring.label)+'</span><em>Tap anywhere to stop</em></div>':'');
+  app.innerHTML='<main class="home">'+glanceView()+'<div class="act">'+nowPane()+'<div class="cards">'+mealCard()+nextCard()+'</div></div></main>'+dock()+sheetView()+
+    (S.err?'<div class="status glass" role="status">'+esc(S.err)+'</div>':battNote())+(S.undo?'<div class="status glass undo" role="status">'+(S.undo.verb||'Checked')+' “'+esc(S.undo.label.slice(0,48))+'”<button data-act="undo">Undo</button></div>':'')+(S.amb?ambientView():'')+(S.dim&&!S.amb?'<div class="dimmer" aria-hidden="true"></div>':'')+(S.ring?'<div class="alarm" data-act="ringoff" role="alertdialog" aria-label="Timer done"><b>Time’s up</b><span>'+esc(S.ring.label)+'</span><em>Tap anywhere to stop</em></div>':'');
   calSheet();
+  requestAnimationFrame(()=>{fitLists();fitChips()});
   const nb=document.getElementById('sheetbody');if(nb&&prevSheet===S.sheet+S.sel)nb.scrollTop=sbTop;S._lastSheet=S.sheet+S.sel;
   document.documentElement.style.overflow=S.sheet?'hidden':'';
   if(id){const n=document.getElementById(id);if(n){if(txt&&n.value!==val)n.value=val;n.focus({preventScroll:true});try{if(ss!=null)n.setSelectionRange(ss,se)}catch(e){}}}
@@ -1129,15 +1211,15 @@ function tick(){const t=new Date(),el=document.getElementById('time');if(el)el.i
   const mi=Math.floor(Date.now()/60000);if(S.amb&&mi!==S.driftM){S.driftM=mi;const wide=!!document.querySelector('.ambient.dark'),fx=wide?.3:.16,fy=wide?.28:.12;
     r.setProperty('--ax',Math.round((Math.random()*2-1)*innerWidth*fx)+'px');r.setProperty('--ay',Math.round((Math.random()*2-1)*innerHeight*fy)+'px')}
   if(S.amb){const isDark=!!document.querySelector('.ambient.dark');if(isDark!==overnight())render()}
-  if(!INART&&t.getHours()===3&&lsGet('hub-reloaded','')!==iso(t)){lsSet('hub-reloaded',iso(t));location.reload();return}
-  if(S.ambOn&&!S.amb&&!S.sheet&&(t.getHours()>=21||t.getHours()<5)&&Date.now()-lastAct>180000&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))){S.amb=true;render()}
+  if(!INART&&t.getHours()===3&&!S.timers.length&&!S.ring&&lsGet('hub-reloaded','')!==iso(t)){lsSet('hub-reloaded',iso(t));location.reload();return}
+  if(S.ambOn&&!S.amb&&!S.sheet&&!S.timers.length&&!S.ring&&(t.getHours()>=21||t.getHours()<5)&&Date.now()-lastAct>180000&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))){S.amb=true;render()}
   const sun=document.getElementById('sun');if(sun)sun.innerHTML=sunBlock();
-  const gm=document.getElementById('gmid');if(gm&&!S.timers.length)gm.innerHTML=midView();
+  refreshMid();
   paintSky();
   const now=iso(t),ri=routineIdx(t);
   if(now!==S.today){const wasToday=S.sel===S.today;S.today=now;if(wasToday)S.sel=now;syncSubs();if(MCP)watchCals();S._ri=ri;render();return}
   const idle=Date.now()-lastAct,dayHrs=t.getHours()>=5&&t.getHours()<21,dk=document.querySelector('.dock');if(dk)dk.classList.toggle('idle',idle>120000&&!S.sheet);
-  if(S.dimOn&&dayHrs&&!S.dim&&!S.amb&&!S.sheet&&!scanStream&&idle>1200000&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))){S.dim=true;render();return}
+  if(S.dimOn&&dayHrs&&!S.dim&&!S.amb&&!S.sheet&&!scanStream&&!S.timers.length&&!S.ring&&!leaveInfo()&&idle>1200000&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))){S.dim=true;render();return}
   if(S.dim&&(!dayHrs||S.amb)){S.dim=false;render();return}
   if(S._ri!==ri){S._ri=ri;render();return}
   // meals and the clothing tip switch at 10:30 am and 7:30 pm; past events drop off the schedule every 15 minutes
@@ -1167,9 +1249,11 @@ function onAct(b){const a=b.dataset.act,ds=b.dataset;
   if(a==='hbackup'){S.hbackup=!S.hbackup;render();return}
   if(a==='hrestore'){try{const x=JSON.parse(document.getElementById('h-json').value);if(!okProfile(x))throw 0;lsSet('hub-profile',JSON.stringify(x));applyProfile(merge(clone(GENERIC),x));S.hbackup=false;WX=null;lsSet('hub-wx','');loadWx().then(render);closeSheet()}catch(e){S.err='That backup isn’t valid. Paste the whole thing and try again.';render()}return}
   if(a==='tstart'){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume()}catch(e){}const m=+ds.m;
-    S.timers.push({id:uid(),end:Date.now()+m*60000,label:m+'-minute timer'});saveTimers();render();return}
+    const same=S.timers.filter(t=>t.mins===m).length;S.timers.push({id:uid(),end:Date.now()+m*60000,mins:m,label:m+'-minute timer'+(same?' '+(same+1):'')});saveTimers();render();return}
   if(a==='tplus'){S.timers.forEach(tm=>{if(tm.id===ds.id)tm.end+=60000});saveTimers();render();return}
-  if(a==='tstop'){S.timers=S.timers.filter(tm=>tm.id!==ds.id);saveTimers();render();return}
+  if(a==='tstop'){const t=S.timers.find(tm=>tm.id===ds.id);S.timers=S.timers.filter(tm=>tm.id!==ds.id);saveTimers();
+    if(t){S.undo={act:'trestore',ds:{id:t.id,end:String(t.end),label:t.label},label:t.label,verb:'Cancelled'};clearTimeout(S._undoT);S._undoT=setTimeout(()=>{S.undo=null;render()},6000)}render();return}
+  if(a==='trestore'){if(+ds.end>Date.now())S.timers.push({id:ds.id,end:+ds.end,label:ds.label});saveTimers();render();return}
   if(a==='ringoff'){S.ring=null;render();return}
   if(a==='dimset'){S.dimOn=ds.v==='1';lsSet('hub-dim',ds.v);render();return}
   if(a==='scan'){openScan();return}
@@ -1202,7 +1286,7 @@ function onAct(b){const a=b.dataset.act,ds=b.dataset;
   if(a==='calallow'){calAllow();return}
   if(a==='lite'){S.lite=ds.v==='1';lsSet('hub-lite',S.lite?'1':'0');paintSky();render();return}
   if(a==='wake'){toggleWake();return}}
-document.addEventListener('pointerdown',e=>{lastAct=Date.now();if(S.amb||S.dim){S.amb=false;S.dim=false;swallow=true;e.preventDefault();render()}},true);
+document.addEventListener('pointerdown',e=>{lastAct=Date.now();try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume()}catch(_){}if(S.amb||S.dim){S.amb=false;S.dim=false;swallow=true;e.preventDefault();render()}},true);
 document.addEventListener('keydown',()=>{lastAct=Date.now();if(S.amb||S.dim){S.amb=false;S.dim=false;render()}},true);
 document.addEventListener('click',e=>{if(swallow){swallow=false;e.preventDefault();e.stopPropagation();return}const b=e.target.closest('[data-act]');if(b)onAct(b)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.sheet){closeSheet();return}
@@ -1225,7 +1309,7 @@ function flush(el){clearTimeout(timers[el.id]);delete timers[el.id];const path=e
   if((dig(C[path]||{},key)||'')===v)return;patch(path,nest(key,v),weekBase(path.split('/')[1]))}
 document.addEventListener('input',e=>{const el=e.target;if(el.id==='skyprev'){S.previewMin=+el.value;paintSky();const l=document.getElementById('prevlbl');if(l)l.textContent=fmtTime(skyNow().getTime())+' \u00b7 '+sunLabel(skyNow());return}if(!el.dataset||!el.dataset.in)return;clearTimeout(timers[el.id]);timers[el.id]=setTimeout(()=>{const n=document.getElementById(el.id);if(n)flush(n)},800)});
 document.addEventListener('change',e=>{const el=e.target;if(el.dataset&&el.dataset.in)flush(el)});
-async function toggleWake(){try{if(S.wake){await S.wake.release();S.wake=null}else{S.wake=await navigator.wakeLock.request('screen');S.wake.addEventListener('release',()=>{S.wake=null;render()})}}catch(e){S.wake=null}render()}
+async function toggleWake(){try{if(S.wake){S.wakeWanted=false;await S.wake.release();S.wake=null}else{S.wakeWanted=true;S.wake=await navigator.wakeLock.request('screen');S.wake.addEventListener('release',()=>{S.wake=null;render()})}}catch(e){S.wake=null}render()}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){tick();if(S.wakeWanted&&!S.wake)toggleWake()}});
 
 /* ================= boot ================= */
