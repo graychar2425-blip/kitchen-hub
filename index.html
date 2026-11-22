@@ -412,6 +412,42 @@ h2.who{gap:10px}
 .g-strip b{color:var(--ink);font-weight:600;font-size:16px}
 .g-strip .lo{font-size:13px;color:var(--faint)}
 .g-strip .pp{font-size:12px;font-weight:700;color:#CDE8FF;min-height:15px}
+/* the weather section: a sky window, the next 12 hours as a curve, five days as range bars
+   (padding-top keeps the window's shape on WebViews without aspect-ratio; transforms rather than translate for the same reason) */
+.wx-panel{display:flex;flex-direction:column;gap:6px;min-width:0}
+.wx-scene{position:relative;display:block;width:100%;height:0;padding:35.5% 0 0;border:1px solid rgba(255,255,255,.2);border-radius:22px;overflow:hidden;cursor:pointer;color:inherit;font:inherit;text-align:left;
+  background:linear-gradient(180deg,rgba(132,184,240,.42),rgba(190,215,245,.16) 70%);box-shadow:inset 0 1px 0 rgba(255,255,255,.22)}
+.night .wx-scene{background:linear-gradient(180deg,rgba(40,58,110,.55),rgba(70,90,150,.2) 70%)}
+.wx-scene:active{filter:brightness(1.12)}
+.wx-art{position:absolute;left:0;top:0;width:100%;height:100%}
+.wx-cl{animation:wxdrift 38s ease-in-out infinite alternate}
+.wx-cl:nth-child(2n){animation-duration:52s;animation-direction:alternate-reverse}
+@keyframes wxdrift{from{transform:translateX(-10px)}to{transform:translateX(12px)}}
+@media (prefers-reduced-motion:reduce){.wx-cl{animation:none}}
+.wx-now{position:absolute;left:16px;top:10px;right:14px;display:flex;align-items:flex-start;gap:12px}
+.wx-now b{font-family:"Outfit",var(--ui);font-weight:300;font-size:58px;line-height:.95;letter-spacing:-.03em}
+.wx-now>span{display:flex;flex-direction:column;font-size:15px;line-height:1.3;color:var(--muted);padding-top:6px}
+.wx-now em{font-style:normal;font-size:18px;font-weight:600;color:var(--ink)}
+.wx-foot{position:absolute;left:16px;right:16px;bottom:8px;display:flex;justify-content:space-between;font-size:14px;font-weight:600;color:rgba(255,255,255,.9)}
+.wx-hours{display:block;width:100%;height:auto;overflow:visible}
+.wh-line{fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;opacity:.9}
+.wh-pt{fill:#fff}
+.wh-now{fill:#FFD58A;stroke:rgba(10,24,60,.6);stroke-width:2}
+.wh-t{fill:var(--ink);font-size:15px;font-weight:600;text-anchor:middle}
+.wh-h{fill:var(--muted);font-size:13px;font-weight:600;text-anchor:middle}
+.wh-pp{fill:#CDE8FF;font-size:12px;font-weight:700;text-anchor:middle}
+.wx-days{display:flex;flex-direction:column}
+.wx-days[hidden]{display:none}
+.wd-r{display:grid;grid-template-columns:52px 24px 38px 34px 1fr 34px;align-items:center;gap:6px;min-height:27px;font-size:16px;border-top:1px solid rgba(255,255,255,.1)}
+.wd-r:first-child{border-top:0}
+.wd-r svg{width:22px;height:22px}
+.wd-d{font-weight:600}
+.wd-p{font-size:12px;font-weight:700;color:#CDE8FF;text-align:right}
+.wd-lo{color:var(--faint);text-align:right}
+.wd-hi{text-align:right;font-weight:600}
+.wd-bar{position:relative;height:5px;border-radius:3px;background:rgba(255,255,255,.14)}
+.wd-bar i{position:absolute;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,#9CCBFF,#FFE39A);min-width:6px}
+.wd-bar b{position:absolute;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#FFD58A;box-shadow:0 0 0 2px rgba(10,24,60,.7)}
 .g-sky{display:flex;flex-direction:column;gap:6px;margin-top:18px;font-size:16px;color:var(--muted)}
 .g-sky .moon{display:flex;align-items:center;gap:8px}
 .g-sky .sep{display:inline-block;width:18px}
@@ -1144,7 +1180,69 @@ function glanceView(){const ahead=lookAhead(),ND=DAYS[dowOf(addDays(S.today,1))]
   return '<section class="glance" aria-label="Time and weather"><div class="gg"><div class="g-date">'+parse(S.today).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</div>'+
     '<div class="g-time" id="time">'+clockHTML()+'</div>'+
     (tomorrowMode()?'':'<div class="g-focus">'+(ahead?'Tomorrow: '+esc(ND.focus.charAt(0).toLowerCase()+ND.focus.slice(1)):'Today: '+esc(D.focus.charAt(0).toLowerCase()+D.focus.slice(1)))+'</div>')+'</div>'+
-    '<div class="gg">'+wxGlance()+(tomorrowMode()?'':tipView())+'</div><div class="g-mid" id="gmid">'+midView()+'</div><div class="g-sky" id="sun"'+(S.timers.length||leaveInfo()?' hidden':'')+'>'+sunBlock()+'</div></section>'}
+    wxPanel()+(tomorrowMode()?'':tipView())+'<div class="g-mid" id="gmid">'+midView()+'</div></section>'}
+
+/* ---------- the weather section: an illustrated sky window (the sun or moon where it really is, clouds for the
+   conditions, rolling hills, the temperature), a 12-hour temperature curve, and five days of low-to-high range bars.
+   One series per chart, values labelled at a few points, the hub's gold only for "now". ---------- */
+const WXA={l:0,r:372,h:132};
+function wxScene(){const c=WX.current,l=WMO(c.weather_code),kind=l[1],d=WX.daily,ti=todayIdx(),day=c.is_day!==0,now=Date.now(),s=sunTimes(),W=WXA.r,H=WXA.h;
+  let art='',f;
+  // where the sun (by day) or the moon (by night) sits on its arc
+  if(s.rise&&s.set){if(day)f=(now-s.rise)/(s.set-s.rise);else{const set0=now>s.set?s.set:s.set-864e5,rise1=now>s.set?s.rise+864e5:s.rise;f=(now-set0)/(rise1-set0)}}else f=.5;
+  f=Math.max(.04,Math.min(.96,f));const cx=176+f*(W-200),cy=86-Math.sin(Math.PI*f)*56,cover=kind==='sun'?1:kind==='partly'?.75:.35;
+  if(day)art+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="44" fill="url(#wxglow)" opacity="'+cover+'"/><circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="17" fill="#FFD25A"'+(cover>.5?'':' opacity="0"')+'/>';
+  else{art+='<g opacity=".9">'+[[30,22],[80,40],[140,18],[210,34],[290,20],[340,46],[110,58],[250,60]].map(p=>'<circle cx="'+p[0]+'" cy="'+p[1]+'" r="1.3" fill="#fff" opacity="'+(cover>.5?.8:.3)+'"/>').join('')+'</g>'+
+    moonInfo().svg.replace('<svg ','<svg x="'+(cx-14).toFixed(1)+'" y="'+(cy-14).toFixed(1)+'" width="28" height="28" ')}
+  // clouds: a few for partly cloudy, a sky full (and greyer) for cloud, rain, snow, fog and storms
+  // the outer group drifts (when "Weather in the sky" is Moving), the inner one places the cloud
+  const cl=(x,y,s,o)=>'<g'+(S.wxFx&&!S.lite?' class="wx-cl"':'')+'><g transform="translate('+x+' '+y+') scale('+s+')" opacity="'+o+'"><ellipse cx="0" cy="8" rx="34" ry="12"/><circle cx="-12" cy="2" r="13"/><circle cx="8" cy="-4" r="17"/><circle cx="24" cy="4" r="11"/></g></g>';
+  const grey=kind==='rain'||kind==='storm'||kind==='snow'||kind==='fog',tone=day?(grey?'#D5DCE6':'#FFFFFF'):'#8D98B8';
+  if(kind==='partly')art+='<g fill="'+tone+'">'+cl(W*.8,30,.9,.85)+cl(W*.55,72,.6,.7)+'</g>';
+  else if(kind!=='sun')art+='<g fill="'+tone+'">'+cl(W*.72,26,1.1,.8)+cl(W*.93,46,.9,.75)+cl(W*.62,80,.8,.6)+cl(W*.12,80,.6,.5)+'</g>';
+  if(kind==='rain'||kind==='storm')art+='<g stroke="#BFE1FF" stroke-width="2" stroke-linecap="round" opacity=".8">'+[40,90,140,190,240,290,340,65,165,265].map((x,i)=>'<line x1="'+x+'" y1="'+(62+(i%3)*8)+'" x2="'+(x-5)+'" y2="'+(76+(i%3)*8)+'"/>').join('')+'</g>';
+  if(kind==='snow')art+='<g fill="#fff">'+[40,90,140,190,240,290,340,65,165,265].map((x,i)=>'<circle cx="'+x+'" cy="'+(64+(i%3)*9)+'" r="2.4"/>').join('')+'</g>';
+  // three layers of rolling hills, darker toward the front
+  art+='<path d="M0 96 C60 78 120 84 180 88 S300 72 372 86 L372 132 L0 132Z" fill="rgba(24,46,98,.42)"/>'+
+       '<path d="M0 108 C70 92 140 112 220 100 S330 94 372 104 L372 132 L0 132Z" fill="rgba(14,30,72,.58)"/>'+
+       '<path d="M0 120 C90 108 170 124 260 116 S340 110 372 118 L372 132 L0 132Z" fill="rgba(7,16,44,.72)"/>';
+  const hl=ti<0?'':'High '+rnd(d.temperature_2m_max[ti])+'°, low '+rnd(d.temperature_2m_min[ti])+'°',
+    edge=s.rise&&s.set?(now<s.rise?'Sunrise '+fmtTime(s.rise):now<s.set?'Sunset '+fmtTime(s.set):'Sunrise '+fmtTime(s.rise+864e5)):'';
+  return '<button class="wx-scene" data-act="open" data-s="radar" aria-label="'+esc(l[0])+', '+rnd(c.temperature_2m)+' degrees. Tap for the radar.">'+
+    '<svg class="wx-art" viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><defs><radialGradient id="wxglow"><stop offset="0" stop-color="#FFE7A3" stop-opacity=".9"/><stop offset="1" stop-color="#FFE7A3" stop-opacity="0"/></radialGradient></defs>'+art+'</svg>'+
+    '<span class="wx-now"><b>'+rnd(c.temperature_2m)+'°</b><span><em>'+esc(l[0])+'</em>'+hl+'</span></span>'+
+    '<span class="wx-foot"><span>'+esc(edge)+'</span><span>Radar ›</span></span></button>'}
+// the next 12 hours: icons and rain chance above, a smooth temperature curve, labels at every second hour
+function wxHours(){const hr=WX.hourly;if(!hr||!hr.time)return '';const i0=hr.time.indexOf(S.today+'T'+pad(new Date().getHours())+':00');if(i0<0)return '';
+  const pts=[];for(let k=0;k<=12&&i0+k<hr.time.length;k++)pts.push({k,t:hr.temperature_2m[i0+k],H:+hr.time[i0+k].slice(11,13),pp:hr.precipitation_probability[i0+k]||0,code:hr.weather_code[i0+k]});
+  if(pts.length<3)return '';
+  const W=360,x0=22,x1=W-22,lo=Math.min(...pts.map(p=>p.t)),hi=Math.max(...pts.map(p=>p.t)),span=Math.max(4,hi-lo),yTop=60,yBot=77,mid=(lo+hi)/2;
+  pts.forEach(p=>{p.x=x0+(x1-x0)*p.k/(pts.length-1);p.y=(yTop+yBot)/2-(p.t-mid)/span*(yBot-yTop)});
+  // a smooth line through the points (Catmull-Rom as cubic Béziers)
+  let dpath='M'+pts[0].x.toFixed(1)+' '+pts[0].y.toFixed(1);
+  for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+    dpath+=' C'+(p1.x+(p2.x-p0.x)/6).toFixed(1)+' '+(p1.y+(p2.y-p0.y)/6).toFixed(1)+' '+(p2.x-(p3.x-p1.x)/6).toFixed(1)+' '+(p2.y-(p3.y-p1.y)/6).toFixed(1)+' '+p2.x.toFixed(1)+' '+p2.y.toFixed(1)}
+  const area=dpath+' L'+pts[pts.length-1].x.toFixed(1)+' 84 L'+pts[0].x.toFixed(1)+' 84Z';
+  let marks='';
+  pts.filter(p=>p.k%2===0).forEach(p=>{const day=p.H>=7&&p.H<19,lab=p.k===0?'Now':((p.H%12)||12)+(p.H<12?'a':'p');
+    marks+=icon(WMO(p.code)[1],day).replace('<svg ','<svg x="'+(p.x-11).toFixed(1)+'" y="0" width="22" height="22" ')+
+      (p.pp>=20?'<text x="'+p.x.toFixed(1)+'" y="31" class="wh-pp">'+p.pp+'%</text>':'')+
+      '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+(p.k===0?5:3.5)+'" class="'+(p.k===0?'wh-now':'wh-pt')+'"/>'+
+      '<text x="'+p.x.toFixed(1)+'" y="'+(p.y-9).toFixed(1)+'" class="wh-t">'+rnd(p.t)+'°</text>'+
+      '<text x="'+p.x.toFixed(1)+'" y="98" class="wh-h">'+lab+'</text>'});
+  return '<svg class="wx-hours" viewBox="0 0 '+W+' 100" role="img" aria-label="Temperature for the next 12 hours, from '+rnd(pts[0].t)+' to '+rnd(pts[pts.length-1].t)+' degrees">'+
+    '<defs><linearGradient id="whfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>'+
+    '<path d="'+area+'" fill="url(#whfill)"/><path d="'+dpath+'" class="wh-line"/>'+marks+'</svg>'}
+// today and the next four days: low and high on one shared scale, with today's current temperature as a gold dot
+function wxDays(){const d=WX.daily,ti=todayIdx();if(ti<0)return '';const rows=[];
+  for(let i=ti;i<ti+5&&i<d.time.length;i++)rows.push({i,lo:d.temperature_2m_min[i],hi:d.temperature_2m_max[i],pp:d.precipitation_probability_max[i]||0,code:d.weather_code[i]});
+  const mn=Math.min(...rows.map(r=>r.lo)),mx=Math.max(...rows.map(r=>r.hi)),sp=Math.max(1,mx-mn),pc=v=>((v-mn)/sp*100).toFixed(1),cur=WX.current.temperature_2m;
+  return '<div class="wx-days" id="wxdays"'+(S.timers.length||leaveInfo()?' hidden':'')+' role="table" aria-label="Five-day forecast">'+rows.map((r,k)=>'<div class="wd-r" role="row"><span class="wd-d">'+(k===0?'Today':DAYS[dowOf(d.time[r.i])].name.slice(0,3))+'</span>'+icon(WMO(r.code)[1],true)+
+    '<span class="wd-p">'+(r.pp>=30?r.pp+'%':'')+'</span><span class="wd-lo">'+rnd(r.lo)+'°</span><span class="wd-bar"><i style="left:'+pc(r.lo)+'%;width:'+(pc(r.hi)-pc(r.lo)).toFixed(1)+'%"></i>'+
+    (k===0&&cur!=null?'<b style="left:'+pc(Math.max(r.lo,Math.min(r.hi,cur)))+'%"></b>':'')+'</span><span class="wd-hi">'+rnd(r.hi)+'°</span></div>').join('')+'</div>'}
+function wxPanel(){if(!WX||!WX.current)return '<div class="wx-panel"><div class="g-wx"><div class="c"><b>'+(WXstate==='noloc'?'Add your ZIP in Settings › Household':WXstate==='offline'?'Can’t reach the weather service':'Loading the weather…')+'</b></div></div></div>';
+  const old=WX.fetchedAt&&Date.now()-WX.fetchedAt>75*60000?'<span class="stale">Weather from '+fmtTime(WX.fetchedAt)+', can’t update</span>':'';
+  return '<div class="wx-panel">'+wxScene()+old+wxHours()+wxDays()+'</div>'}
 
 /* ---------- "Calendar first" home layout (preview, chosen in Settings): the clock, one weather line, and the next
    three days of the calendar down the left; the next event carries the one accent and a live countdown ---------- */
@@ -1248,7 +1346,7 @@ function midView(){let h='';const lv=leaveInfo();
   if(!S.timers.length)countdowns().forEach(c=>{h+='<div class="g-count"><b>'+(c.days===0?'Today':c.days===1?'Tomorrow':c.days+' days')+'</b><span>'+(c.days>1?'until ':'')+esc(c.name)+'</span></div>'});
   h+='<div class="g-tbtns" role="group" aria-label="Start a timer"><span>Timer</span>'+[1,5,10,15,30].map(m=>'<button data-act="tstart" data-m="'+m+'" aria-label="'+m+' minute timer">'+m+(m===1?' min':'')+'</button>').join('')+'<button class="tnew" data-act="tnew" aria-label="Timer with a name or another length">+</button></div>';
   return h}
-function refreshMid(){const gm=document.getElementById('gmid'),sky=document.getElementById('sun');if(!gm)return;const h=midView();
+function refreshMid(){const gm=document.getElementById('gmid'),sky=document.getElementById('wxdays');if(!gm)return;const h=midView();
   if(h.replace(/<b id="tm-[^"]+">[^<]*<\/b>/g,'')!==(gm._sig||'')){gm.innerHTML=h;gm._sig=h.replace(/<b id="tm-[^"]+">[^<]*<\/b>/g,'')}
   if(sky)sky.hidden=!!(S.timers.length||leaveInfo())}
 let actx=null;
@@ -1458,7 +1556,8 @@ function timerView(){const d=S.tdraft||{};
 function keepTyped(){const n=document.getElementById('tname-in');if(n&&S.tdraft)S.tdraft.name=n.value}
 
 /* ---- what's new: shown once per release, until tapped or for a day ---- */
-const NEWS={id:'2026-11-22-week',items:[
+const NEWS={id:'2026-11-22-wx',items:[
+  ['A new weather window.','A little sky shows the sun or moon where it really is, with clouds, rain or snow to match outside. Below it, the next 12 hours as a temperature curve and five days of lows and highs, with a gold dot for right now. Tap the sky for the radar.'],
   ['The week at a glance.','Time, weather, the forecast and the clothing tip stay on the left. The right shows the whole week in day boxes, plus next week. Tap any event for its details.'],
   ['Tasks appear when there are some.','Emailed to-dos and groceries show under the week, and the section disappears once they are done.'],
   ['The sky shows the weather.','Rain falls, snow drifts, clouds roll by, the sun’s rays turn, wind gusts, frost creeps in when it’s freezing and heat shimmers when it’s hot. Settings › Weather in the sky › Still turns it off.'],
