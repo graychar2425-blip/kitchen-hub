@@ -596,106 +596,70 @@ button.pill:active{transform:scale(.97)}
 .radar img.us{width:900px}
 .radar .note{text-align:center}
 .sheet .seg{flex:none}
-/* ---------- Home board layout (preview): header, then calendar and lists in two equal panes ---------- */
-.board{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:14px 16px;max-width:1500px;margin:0 auto;
-  height:calc(100dvh - 100px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));min-height:560px;transform:translate(var(--px,0px),var(--py,0px));transition:transform 3s ease}
-.bhead{grid-column:1/-1;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;min-width:0;text-shadow:0 1px 2px rgba(8,20,50,.35),0 0 24px rgba(8,20,50,.3)}
-.bclock{display:flex;align-items:flex-end;gap:18px;min-width:0;flex:1 1 auto}
-.bhead .g-time{font-size:84px;margin:0 0 -4px -4px;flex:none}
-.bday{display:flex;flex-direction:column;gap:4px;padding-bottom:6px;min-width:0}
-.bday b{font-size:21px;font-weight:600}
-.bday span{font-size:18px;line-height:1.3;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.bside{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding-bottom:6px;flex:none;max-width:56%}
-.bwx,.bbtn{display:inline-flex;align-items:center;gap:8px;min-height:52px;padding:0 14px;border:0;border-radius:14px;color:var(--ink);font:inherit;cursor:pointer;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
-.bwx svg{width:30px;height:30px;filter:saturate(0) brightness(1.7)}
-.bwx b{font-family:"Outfit",var(--ui);font-weight:300;font-size:30px;line-height:1}
-.bwx span{font-size:16px;color:var(--muted)}
-.bbtn{font-size:16px;font-weight:600}
-.bbtn svg{width:22px;height:22px}
-.bpill{display:inline-flex;align-items:center;gap:8px;min-height:52px;padding:0 4px 0 14px;border-radius:14px;background:rgba(255,213,138,.14);box-shadow:inset 0 0 0 1px rgba(255,213,138,.45)}
-.bpill b{font-family:"Outfit",var(--ui);font-weight:400;font-size:26px;color:#FFD58A;font-variant-numeric:tabular-nums}
-.bpill span,.bpill .tname{font-size:16px;color:var(--ink);min-height:44px;display:inline-flex;align-items:center}
-.bpill .tname{border:0;background:none;padding:0 4px;font:inherit;font-size:16px;color:var(--ink);cursor:pointer;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ---------- Week board: the old left column on the sky, the whole week as day boxes on the right,
+   and a tasks section underneath only while there is something to do or buy ---------- */
+.wkhome .act{gap:12px}
+/* the week takes whatever the tasks leave, never sized by its own events (that would make fitting circular) */
+.wkp{padding:14px 16px 12px;display:flex;flex-direction:column;flex:1 1 0;min-height:0;min-width:0}
+.wkp .bh{margin-bottom:6px}
+.wkp .whos{margin:0 auto 0 8px}
+.wkg{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:8px}
+.wc{display:flex;flex-direction:column;min-width:0;min-height:0;padding:8px 8px 6px;border-radius:14px;background:rgba(255,255,255,.07)}
+.wc.today{background:rgba(255,213,138,.12);box-shadow:inset 0 0 0 1px rgba(255,213,138,.45)}
+.wc.later{background:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.wc-h{display:flex;align-items:baseline;justify-content:space-between;gap:4px;padding:0 2px 5px;flex:none}
+.wc-h b{font-family:"Outfit",var(--ui);font-weight:400;font-size:20px;white-space:nowrap}
+.wc-h span{font-family:"Outfit",var(--ui);font-weight:300;font-size:20px;color:var(--muted);font-variant-numeric:tabular-nums}
+.wc.today .wc-h span{color:#FFD58A}
+.wc-b{position:relative;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:4px}
+.wc-b>[hidden]{display:none}
+/* one line per event: compact time, then the title */
+.wr{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 6px;flex:none;width:100%;min-width:0;border:0;border-left:3px solid var(--pb,var(--c,#fff));border-radius:3px 7px 7px 3px;background:rgba(255,255,255,.09);color:var(--ink);font:inherit;text-align:left;padding:3px 6px;cursor:pointer}
+.wr span{flex:none;font-size:13px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wr b{flex:1 1 0;min-width:0;font-size:15px;font-weight:600;line-height:1.25;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.wr b em,.wt em{font-style:normal;font-size:12px;font-weight:700;color:#FFD58A}
+.wr small{flex-basis:100%;font-size:13px;font-weight:700;color:#FFD58A}
+.wr.next{background:rgba(255,213,138,.16)}
+.wr.past{opacity:.45}
+.wt{display:block;flex:none;width:100%;border:0;border-radius:8px;background:rgba(255,255,255,.15);color:var(--ink);font:inherit;font-size:13px;font-weight:600;text-align:left;padding:4px 8px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wt.hol{background:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);color:var(--muted);font-weight:500}
+.wnone{font-size:14px;color:var(--faint);padding:2px}
+.cmore{position:absolute;left:0;bottom:0;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;font-weight:700;min-height:20px;line-height:20px;padding:0 2px;cursor:pointer}
+.wdin{flex:none;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:13px;font-weight:600;text-align:left;padding:5px 2px 0;margin-top:4px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wdin span{color:var(--muted);font-weight:500;margin-right:6px}
+.ag-empty{margin:4px 0 0;font-size:17px;color:var(--muted)}
+.ag-age{margin:8px 0 0;font-size:13px;color:var(--faint)}
+/* tasks: To do and Groceries side by side when both have items */
+.tsk{flex:0 1 auto;max-height:40%;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);gap:0 22px;padding:8px 16px 6px}
+.tsk.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.tsk .bh{min-height:44px}
+.tsk .bh h2{font-size:24px}
+.tsk .brow .ck{min-height:46px;font-size:17px;padding:4px}
+.tsk .brow .ck .lbl{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25}
+.tsk .brow .ck small{font-size:13px}
 .bx{flex:none;width:48px;height:48px;border:0;border-radius:12px;background:none;color:var(--faint);font-size:22px;line-height:1;cursor:pointer}
 .bx:active{background:rgba(255,255,255,.12);color:var(--ink)}
-.bcal,.blist{padding:18px 20px 14px;display:flex;flex-direction:column;min-height:0;min-width:0}
 .bh{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none;min-height:48px}
-.bh h2{font-family:"Outfit",var(--ui);font-weight:300;font-size:28px;letter-spacing:-.01em;display:flex;align-items:baseline;gap:10px}
+.bh h2{font-family:"Outfit",var(--ui);font-weight:300;font-size:28px;letter-spacing:-.01em;display:flex;align-items:baseline;gap:10px;white-space:nowrap}
 .bh h2 em{font-style:normal;font-family:var(--ui);font-size:17px;font-weight:600;color:var(--muted)}
 .bact{display:flex;gap:4px}
-.blink{border:0;background:none;color:var(--muted);font:inherit;font-size:16px;font-weight:600;min-height:48px;padding:0 12px;border-radius:12px;cursor:pointer}
+.blink{border:0;background:none;color:var(--muted);font:inherit;font-size:16px;font-weight:600;min-height:48px;padding:0 12px;border-radius:12px;cursor:pointer;white-space:nowrap}
 .blink.add{color:var(--ink);background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
-.bcal .agenda2{margin-top:4px}
-.bcal .ag-day{font-size:21px;margin-top:14px;color:var(--muted)}
-.bcal .ag-day:first-child{margin-top:2px}
-.bcal .ag-row{grid-template-columns:4px 4.9em minmax(0,1fr) auto;gap:12px;font-size:19px;padding:7px 0}
-.bcal .ag-row .dot{width:4px;height:auto;align-self:stretch;margin:2px 0;border-radius:2px;background:var(--pb,var(--c,#fff))}
-.bcal .ag-row .tm{font-size:17px}
-.bcal .ag-row .tt small{font-size:16px}
-.bdin{flex:none;display:flex;align-items:baseline;gap:10px;width:100%;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;text-align:left;padding:12px 0 2px;margin-top:6px;cursor:pointer;min-height:52px}
-.bdin span{font-size:17px;color:var(--muted);flex:none}
-.bdin b{font-size:19px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bdin b.empty{color:var(--muted);font-weight:500}
-.bdin i{font-style:normal;color:var(--faint);margin-left:auto}
-.bsec{display:flex;flex-direction:column;min-height:0}
-.bsec.todo{flex:0 1 auto;max-height:60%}
-.bsec.routine{flex:0 1 auto;max-height:42%}
-.bsec.buy{flex:1 1 0;min-height:30%;border-top:1px solid var(--line);margin-top:6px;padding-top:6px}
-.grid2 .brow .ck small{display:none}
-.bnone{font-size:17px;color:var(--faint);padding:6px 4px 10px}
+.bsec{display:flex;flex-direction:column;min-height:0;min-width:0}
 .brows{position:relative;display:flex;flex-direction:column;overflow:hidden;min-height:0;flex:1 1 auto}
-.brows.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10px;align-content:start}
 .brow{display:flex;align-items:center;min-width:0;touch-action:pan-y;transition:transform .18s ease,opacity .18s ease;border-bottom:1px solid rgba(255,255,255,.08)}
 .brow[hidden]{display:none}
-.brow .ck{flex:1;min-width:0;min-height:56px;font-size:19px;align-items:center;padding:8px 4px}
+.brow .ck{flex:1;min-width:0;min-height:52px;font-size:18px;align-items:center;padding:6px 4px}
 .brow .ck .lbl{padding-top:0;font-weight:500;overflow:hidden;text-overflow:ellipsis}
-.brow .ck small{font-size:15px}
-.grid2 .brow .ck{font-size:18px;min-height:52px}
+.brow .ck small{font-size:14px}
 .bmore{position:absolute;right:0;bottom:0;border:0;background:none;color:var(--muted);font:inherit;font-size:16px;font-weight:600;min-height:34px;padding:0 6px;cursor:pointer}
-.bempty{flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:0 6px 20px}
-.bempty b{font-family:"Outfit",var(--ui);font-weight:300;font-size:30px}
-.bempty span{font-size:18px;line-height:1.4;color:var(--muted);max-width:30em}
-.bfoot{flex:none;display:flex;flex-wrap:wrap;gap:6px;padding-top:10px}
-.bfoot .jc em{font-style:normal;color:var(--muted)}
-/* ---------- "Clean" look for the Home board: the sky is a window band behind the header; below it a flat
-   surface with solid cards (light by day like Skylight and Hearth, deep navy from dusk), people as colour bars ---------- */
-html.clean{--paper:#0D1422;--card:#151E2E;--card2:#1B2638;--acc:#FFD58A;--edge:rgba(255,255,255,.08)}
-html.clean.day{--paper:#E9EDF2;--card:#FFFFFF;--card2:#F4F6F9;--acc:#A35F00;--edge:#DCE2E9}
-.cleanpaper{position:fixed;left:0;right:0;bottom:0;top:var(--band,176px);z-index:-1;background:var(--paper);box-shadow:0 -1px 0 rgba(0,0,0,.1)}
-html.clean .board .pane,html.clean .dock.pane,html.clean .sheet.glass,html.clean .status.glass{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none;border:1px solid var(--edge);box-shadow:0 1px 2px rgba(10,20,40,.06),0 8px 28px rgba(10,20,40,.08)}
-html.clean .sheet.glass::after,html.clean .status.glass::after{display:none}
-html.clean .board .pane{border-radius:18px}
-html.clean.day .bcal,html.clean.day .blist,html.clean.day .dock,html.clean.day .sheet,html.clean.day .status{--ink:#17202B;--muted:#4F5B6A;--faint:#8792A0;--line:#E2E7ED;--chip:#F0F3F7;color:var(--ink);text-shadow:none;color-scheme:light}
-html.clean.day .ck .box{border-color:#9AA5B1}
-html.clean.day .blink.add,html.clean.day .ag-chip,html.clean.day .wk-tag,html.clean.day .jc{background:var(--chip);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink)}
-html.clean.day .ag-chip.hol,html.clean.day .wk-tag.hol,html.clean.day .wk-tag.job{background:none;color:var(--muted)}
-html.clean .ag-row .tt small,html.clean .wk-ev em{color:var(--acc)}
-html.clean.day .ag-new{background:rgba(163,95,0,.12);color:var(--acc)}
-html.clean.day .brow{border-bottom-color:var(--line)}
-/* on white, a person's colour uses its deeper shade; events with no person get a quiet grey, not black */
-html.clean.day .bcal .ag-row .dot{background:#AEB7C2}
-html.clean.day .bcal .ag-row .dot.pdot{background:var(--pi)}
-html.clean.day .wk-ev{border-left-color:#AEB7C2}
-html.clean.day .wk-ev[style*="--pi"]{border-left-color:var(--pi)}
-html.clean.day .dock button{color:var(--ink)}
-html.clean.day .dock button[aria-current="true"]{background:var(--chip)}
-html.clean.day .sheet .card{background:var(--card2);border-color:var(--line)}
-html.clean.day input[type=text],html.clean.day textarea,html.clean.day select,html.clean.day input[type=time]{background:var(--chip);border-color:var(--line);color:var(--ink)}
-html.clean.day .primary,html.clean.day .addrow button,html.clean.day .seg button[aria-pressed="true"]{background:#17202B;color:#fff}
-html.clean.day .pillbtn,html.clean.day .iconbtn,html.clean.day .undo button,html.clean.day .preview{background:var(--chip);color:var(--ink)}
-html.clean.day .wk-col{background:var(--card2)}
-html.clean.day .wk-col.today{background:#FFF5E2;box-shadow:inset 0 0 0 1px #EFC77F}
-html.clean.day .wk-ev{background:#fff;box-shadow:0 1px 2px rgba(10,20,40,.1)}
-html.clean.day .sheet .wxsheet{background:linear-gradient(160deg,#2B5EB2,#5A92D6);border-radius:16px;padding:18px;color:#fff;--ink:#fff;--muted:rgba(255,255,255,.86);--faint:rgba(255,255,255,.62)}
-html.clean.day .sheet .wxsheet .g-seg button[aria-pressed="true"]{background:rgba(255,255,255,.25);color:#fff}
-html.clean .board .bpill{background:rgba(20,24,34,.55)}
 /* whose events: Everyone, or one person */
 .whos{display:flex;gap:4px;flex-wrap:nowrap;overflow:hidden;flex:none;margin:2px 0 4px -6px}
 .whob{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;background:none;color:var(--muted);font:inherit;font-size:15px;font-weight:600;min-height:44px;padding:0 12px 0 6px;cursor:pointer}
 .whob.all{padding:0 12px}
 .whob[aria-pressed="true"]{background:var(--chip);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
 .whob .av{width:26px;height:26px;font-size:12px}
-@media (max-width:980px),(orientation:portrait){.board{grid-template-columns:1fr;height:auto}.bhead{flex-wrap:wrap}.bside{max-width:100%;justify-content:flex-start}.brows{overflow:visible}}
+@media (max-width:980px),(orientation:portrait){.wkg{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none}.wc{min-height:170px}.tsk.two{grid-template-columns:1fr}}
 .agenda2{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;border:0;background:none;color:inherit;font:inherit;text-align:left;padding:0;margin-top:16px;cursor:pointer;width:100%;text-shadow:inherit}
 .ag-day{font-family:"Outfit",var(--ui);font-weight:300;font-size:22px;line-height:1.2;margin:12px 0 2px;flex:none}
 .ag-day:first-child{margin-top:0}
@@ -714,7 +678,6 @@ button.ag-row:active,.ag-chip:active{background:rgba(255,255,255,.1)}
 .ag-chip{border:0;border-radius:10px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);color:var(--ink);font:inherit;font-size:16px;font-weight:500;min-height:34px;padding:2px 12px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ag-chip.hol{background:none;color:var(--muted)}
 .ag-chip .ag-new{margin-left:4px}
-.bcal .ag-chip{font-size:17px}
 /* event details */
 .evd{display:flex;flex-direction:column}
 .evr{display:grid;grid-template-columns:7em minmax(0,1fr);gap:12px;padding:12px 2px;border-top:1px solid var(--line);font-size:18px}
@@ -1081,10 +1044,7 @@ function paintSky(){const t=skyNow(),sun=S.skyMode==='dusk'&&S.previewMin==null?
   const veil=document.getElementById('veil');let vc='veil';
   if(WX&&WX.current){const k=WMO(WX.current.weather_code)[1];if(k==='rain'||k==='storm'||k==='snow')vc+=' wet';else if(k==='cloud'||k==='fog')vc+=' cloudy'}
   if(veil.className!==vc)veil.className=vc;
-  document.documentElement.classList.toggle('lite',S.lite);document.documentElement.classList.toggle('night',el<-6);
-  // the Clean look is light while the sun is up and goes dark at dusk, so the screen doesn't glare at night
-  document.documentElement.classList.toggle('day',el>=-3);
-  paintWx();
+  document.documentElement.classList.toggle('lite',S.lite);document.documentElement.classList.toggle('night',el<-6);  paintWx();
 }
 
 /* ================= the weather, moving in the sky =================
@@ -1190,70 +1150,43 @@ function eventView(){const e=S.evPick;if(!e)return '';const p=personFor(e.title)
   rows.push(['Calendar',e.visit?'Household schedule':e.cat==='hol'?'Holidays':e.calName||'Kitchen Hub']);
   if(isNew(e))rows.push(['Added','In the last day']);
   return '<div class="evd">'+rows.map(r=>'<div class="evr"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('')+'</div><div class="qbtns"><button class="pillbtn" data-act="open" data-s="week">See the week</button><button class="primary" data-act="close">Done</button></div>'}
-function agendaView(){if(!INART&&!FEED)return '<p class="ag-empty">Connect the calendar in Settings to see the next few days here.</p>';
-  if(CAL.state!=='ok')return '<p class="ag-empty">'+esc(CAL.state==='loading'?'Loading the calendar…':'Can’t reach the calendar right now. It tries again in 5 minutes.')+'</p>';
-  const now=Date.now();let h='',nextDone=false;
-  for(let i=0;i<6;i++){const d=addDays(S.today,i),evs=dayEvents(d,i),all=evs.filter(e=>e.allDay),timed=evs.filter(e=>!e.allDay).filter(e=>i>0||(e.endMs||e.startMs+3600000)>now);
-    if(!all.length&&!timed.length&&i>1)continue;
-    h+='<div class="ag-day">'+(i===0?'Today':i===1?'Tomorrow':DAYS[dowOf(d)].name)+'</div>';
-    if(!all.length&&!timed.length){h+='<div class="ag-row quiet"><span></span><span class="tm"></span><span class="tt">Nothing on the calendar</span></div>';continue}
-    // all-day events share one line of tags, so a busy calendar keeps its times visible
-    if(all.length)h+='<div class="ag-allday">'+all.map(e=>'<button class="ag-chip'+(e.cat==='hol'?' hol':'')+'" data-act="evopen" data-i="'+evIdx(e)+'">'+esc(e.title)+(isNew(e)?' <span class="ag-new">New</span>':'')+'</button>').join('')+'</div>';
-    timed.forEach(e=>{const p=personFor(e.title),nx=!nextDone&&i===0&&e.startMs>now-300000;if(nx)nextDone=true;
-      h+='<button class="ag-row'+(nx?' next':'')+'" data-act="evopen" data-i="'+evIdx(e)+'"><span class="dot'+(p?' pdot':'')+'" style="'+(p?pvars(p):'--c:'+(CATC[e.cat]||'#fff'))+'"></span><span class="tm">'+fmtTime(e.startMs)+'</span>'+
-        '<span class="tt">'+esc(e.title)+(nx?'<small data-until="'+e.startMs+'">'+untilText(e.startMs)+'</small>':'')+'</span>'+(isNew(e)?'<span class="ag-new">New</span>':'')+'</button>'})}
+/* ---------- Week board (the default home layout): the old left column on the sky (time, weather, forecast,
+   clothing tip, timers), and on the right the whole week as day boxes, with a tasks section that appears only when
+   something has been emailed in or added ---------- */
+// one event in a day box: time above, title below, the owner's colour as a bar; today's next one counts down
+// compact times for the day boxes, as wall calendars write them: 9a, 11:30a, 3p
+const tShort=ms=>fmtTime(ms).replace(' am','a').replace(' pm','p');
+function weekRow(e,next){const p=personFor(e.title);
+  return '<button class="wr'+(next?' next':'')+((e.endMs||e.startMs)<Date.now()?' past':'')+'" data-act="evopen" data-i="'+evIdx(e)+'" style="'+(p?pvars(p):'--c:'+(CATC[e.cat]||'#fff'))+'"><span>'+tShort(e.startMs)+'</span><b>'+esc(e.title)+(isNew(e)?' <em>New</em>':'')+'</b>'+
+    (next?'<small data-until="'+e.startMs+'">'+untilText(e.startMs)+'</small>':'')+'</button>'}
+function dayBox(d,i){const now=Date.now(),D=DAYS[dowOf(d)],evs=dayEvents(d,i),all=evs.filter(e=>e.allDay),
+    timed=evs.filter(e=>!e.allDay).filter(e=>i>0||(e.endMs||e.startMs+3600000)>now),pl=((weekData(mondayOf(d)).plan||{})[D.k])||{};
+  let nx=false;
+  const body=all.map(e=>'<button class="wt'+(e.cat==='hol'?' hol':'')+'" data-act="evopen" data-i="'+evIdx(e)+'">'+esc(e.title)+(isNew(e)?' <em>New</em>':'')+'</button>').join('')+
+    timed.map(e=>{const n=!nx&&i===0&&e.startMs>now-300000;if(n)nx=true;return weekRow(e,n)}).join('')+
+    (!all.length&&!timed.length?'<div class="wnone">'+(i===0?'Nothing else today':'Free')+'</div>':'');
+  return '<div class="wc'+(i===0?' today':'')+'"><div class="wc-h"><b>'+(i===0?'Today':i===1?'Tomorrow':D.name.slice(0,3))+'</b><span>'+parse(d).getDate()+'</span></div>'+
+    '<div class="wc-b" data-cell>'+body+'</div>'+(pl.dinner?'<button class="wdin" data-act="qedit" data-k="dinner" data-d="'+d+'"><span>Dinner</span>'+esc(pl.dinner)+'</button>':'')+'</div>'}
+// the eighth box: the first few things next week
+function laterBox(){const start=addDays(S.today,7),evs=[];for(let i=0;i<7&&evs.length<6;i++)dayEvents(addDays(start,i),7+i).forEach(e=>{if(e.cat!=='hol')evs.push(e)});
+  return '<div class="wc later"><div class="wc-h"><b>Next week</b></div><div class="wc-b" data-cell>'+(evs.length?evs.map(e=>'<button class="wr" data-act="evopen" data-i="'+evIdx(e)+'" style="--c:'+(CATC[e.cat]||'#fff')+'"><span>'+DAYS[dowOf(e.day)].name.slice(0,3)+(e.allDay?'':' '+tShort(e.startMs))+'</span><b>'+esc(e.title)+'</b></button>').join(''):'<div class="wnone">Nothing yet</div>')+'</div></div>'}
+function weekPane(){let cells='';
+  if(!INART&&!FEED)cells='<p class="ag-empty">Connect the calendar in Settings to see the week here.</p>';
+  else if(CAL.state!=='ok'&&!CAL.events.length)cells='<p class="ag-empty">'+esc(CAL.state==='loading'?'Loading the calendar…':'Can’t reach the calendar right now. It tries again in 5 minutes.')+'</p>';
+  else{for(let i=0;i<7;i++)cells+=dayBox(addDays(S.today,i),i);cells+=laterBox();cells='<div class="wkg">'+cells+'</div>'}
   const age=calAge();
-  return (h||'<p class="ag-empty">Nothing on the calendar for the next few days.</p>')+(age?'<p class="ag-age">'+esc(age.charAt(0).toUpperCase()+age.slice(1))+'</p>':'')}
-/* ---------- "Home board" layout (preview, chosen in Settings): a header with the time, one sentence about the day,
-   weather and timers; under it the calendar and the lists share the screen equally ---------- */
-const shortTitle=t=>{t=String(t||'').trim();return t.length>34?t.slice(0,32).trim()+'…':t};
-const lc1=s=>s?s.charAt(0).toLowerCase()+s.slice(1):s;
-// the day in one sentence, from the calendar: what's left today, then tomorrow's first thing in the evening
-function daySentence(){if(!FEED&&!INART)return '';if(CAL.state!=='ok')return '';const now=Date.now(),tm=addDays(S.today,1);
-  const hol=CAL.events.find(e=>e.day===S.today&&e.cat==='hol'),left=CAL.events.filter(e=>e.day===S.today&&!e.allDay&&(e.endMs||e.startMs)>now).sort(byStart),
-    allDay=CAL.events.filter(e=>e.day===S.today&&e.allDay&&e.cat!=='hol');
-  let s=hol?hol.title+'. ':'';
-  // titles keep their capitals: they often start with a name ("Catherine yoga")
-  if(left.length){const busy=left.length>3,p=left.slice(0,busy?2:3).map(e=>shortTitle(e.title)+' at '+fmtTime(e.startMs));
-    s+=(busy?p.join(', ')+' and '+(left.length-2)+' more':p.length>1?p.slice(0,-1).join(', ')+', then '+p[p.length-1]:p[0])+'.'}
-  else if(allDay.length)s+=allDay.slice(0,2).map(e=>shortTitle(e.title)).join(' and ')+' today.';
-  else s+=lookAhead()?'':'Nothing else on the calendar today.';
-  if(lookAhead()||!left.length){const t=CAL.events.filter(e=>e.day===tm).sort(byStart)[0];if(t)s+=' Tomorrow: '+shortTitle(t.title)+(t.allDay?'':' at '+fmtTime(t.startMs))+'.'}
-  return s.trim()}
-const TIMER_IC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M9.5 3h5"/></svg>';
-// right side of the header: what's running or due (gold), then weather and the timer button
-function boardMid(){let h='';const lv=leaveInfo();
-  if(lv)h+='<div class="bpill">'+(lv.left>0?'<b id="gleave">'+Math.ceil(lv.left/60000)+' min</b><span>to '+esc(lc1(lv.label))+'</span>':'<b>Time to go</b><span>'+esc(lv.label)+'</span>')+'</div>';
-  S.timers.forEach(tm=>{h+='<div class="bpill"><b id="tm-'+tm.id+'">'+fmtLeft(tm.end-Date.now())+'</b><button class="tname" data-act="tname" data-id="'+tm.id+'">'+esc(tm.label.replace(/-minute timer/,' min'))+'</button><button class="bx" data-act="tstop" data-id="'+tm.id+'" aria-label="Cancel '+esc(tm.label)+'">×</button></div>'});
-  if(WX&&WX.current){const c=WX.current,l=WMO(c.weather_code),d=WX.daily,ti=todayIdx();
-    h+='<button class="bwx" data-act="open" data-s="weather" aria-label="'+esc(l[0])+'. Forecast and radar">'+icon(l[1],c.is_day!==0)+'<b>'+rnd(c.temperature_2m)+'°</b>'+(ti>=0?'<span>'+rnd(d.temperature_2m_max[ti])+'° / '+rnd(d.temperature_2m_min[ti])+'°</span>':'')+'</button>'}
-  else h+='<button class="bwx" data-act="open" data-s="weather"><span>'+(WXstate==='noloc'?'Add your ZIP':'Weather')+'</span></button>';
-  return h+'<button class="bbtn" data-act="tnew">'+TIMER_IC+'Timer</button>'}
-function boardHead(){const s=daySentence();
-  return '<header class="bhead"><div class="bclock"><div class="g-time" id="time">'+clockHTML()+'</div><div class="bday"><b>'+parse(S.today).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</b>'+(s?'<span>'+esc(s)+'</span>':'')+'</div></div>'+
-    '<div class="bside" id="gmid">'+boardMid()+'</div></header>'}
-function calColumn(){const ahead=lookAhead(),d=ahead?addDays(S.today,1):S.today,D=DAYS[dowOf(d)],pl=(weekData(mondayOf(d)).plan||{})[D.k]||{};
-  return '<div class="bh"><h2>Calendar</h2><button class="blink" data-act="open" data-s="week">Week ›</button></div>'+whoRow()+
-    '<div class="agenda2" id="agenda2" aria-label="The next few days">'+agendaView()+'</div>'+
-    '<button class="bdin" data-act="qedit" data-k="dinner" data-d="'+d+'"><span>'+(ahead?'Tomorrow’s dinner':'Dinner tonight')+'</span>'+(pl.dinner?'<b>'+esc(pl.dinner)+'</b>':'<b class="empty">Plan it</b>')+'<i aria-hidden="true">›</i></button>'}
+  return '<section class="pane wkp" aria-label="This week"><div class="bh"><h2>This week</h2><button class="blink" data-act="open" data-s="week">Full week ›</button></div>'+cells+
+    (age?'<p class="ag-age">'+esc(age.charAt(0).toUpperCase()+age.slice(1))+'</p>':'')+'</section>'}
 // one list row: tick it, tap × or swipe left to delete; both can be undone
 const brow=(L,x)=>'<div class="brow" data-swipe data-l="'+L+'" data-id="'+x.id+'">'+ck(x.done,'ltog','data-l="'+L+'" data-id="'+x.id+'"',x.t,x.from?'From '+x.from:'')+'<button class="bx" data-act="ldel" data-l="'+L+'" data-id="'+x.id+'" aria-label="Delete '+esc(x.t)+'">×</button></div>';
-function listSection(k,title,cls){const all=listsData()[k]||[],open=all.filter(x=>!x.done),dn=all.length-open.length;
-  return '<section class="bsec '+cls+'"><div class="bh"><h2>'+title+(open.length?'<em>'+open.length+'</em>':'')+'</h2><div class="bact">'+(dn?'<button class="blink" data-act="lclear" data-l="'+k+'">Clear '+dn+' done</button>':'')+
-    '<button class="blink add" data-act="addto" data-l="'+k+'">+ Add</button></div></div>'+(open.length?'<div class="brows'+(k==='buy'?' grid2':'')+'" data-fit="'+k+'">'+open.map(x=>brow(k,x)).join('')+'</div>':'<div class="bnone">'+(k==='buy'?'Nothing to buy.':'Nothing to do.')+'</div>')+'</section>'}
-function listColumn(){const L=listsData(),addr=INBOX.status&&INBOX.status.address,todo=(L.todo||[]).filter(x=>!x.done),buy=(L.buy||[]).filter(x=>!x.done);let h='';
-  // a daily checklist only appears if one is set up again (by default they come in by email instead)
-  if(!noRoutine()){const t=new Date(),r=ROUTINE[routineIdx(t)],done=dayData(S.today).done||{},open=r.items.filter(i=>!done[i[0]]);
-    if(open.length)h+='<section class="bsec routine"><div class="bh"><h2>'+esc(r.title)+'<em>'+open.length+'</em></h2></div><div class="brows" data-fit="routine">'+open.map(i=>'<div class="brow">'+ck(false,'tday','data-d="'+S.today+'" data-id="'+i[0]+'"',i[1],i[2])+'</div>').join('')+'</div></section>'}
-  if(!todo.length&&!buy.length&&!h)h+='<section class="bsec todo"><div class="bh"><h2>To do</h2><div class="bact"><button class="blink add" data-act="addto" data-l="todo">+ Add</button></div></div><div class="bempty"><b>Nothing to do or buy</b><span>'+
-    esc(addr?'Email '+addr+' a line like “To do: call the plumber” or “Groceries: milk, eggs”.':'Tap + Add, or set up the hub’s email in Settings.')+'</span></div></section>';
-  else{h+=listSection('todo','To do','todo')+listSection('buy','Groceries','buy')}
-  const more=LISTS.filter(x=>x.k!=='todo'&&x.k!=='buy').map(x=>({x,n:(L[x.k]||[]).filter(i=>!i.done).length})).filter(o=>o.n);
-  if(more.length)h+='<div class="bfoot">'+more.map(o=>'<button class="jc" data-act="open" data-s="lists">'+esc(LSHORT[o.x.k])+' <em>'+o.n+'</em></button>').join('')+'</div>';
-  return h}
-function boardView(){return '<main class="board">'+boardHead()+'<section class="pane bcal" aria-label="Calendar">'+calColumn()+'</section><section class="pane blist" aria-label="Lists">'+listColumn()+'</section></main>'}
-// the sky shows only behind the header: the flat surface starts just under it
-function setBand(){const h=document.querySelector('.bhead');if(h)document.documentElement.style.setProperty('--band',Math.round(h.getBoundingClientRect().bottom+12)+'px')}
+function listSection(k,title){const all=listsData()[k]||[],open=all.filter(x=>!x.done),dn=all.length-open.length;
+  return '<section class="bsec"><div class="bh"><h2>'+title+'<em>'+open.length+'</em></h2><div class="bact">'+(dn?'<button class="blink" data-act="lclear" data-l="'+k+'">Clear '+dn+' done</button>':'')+
+    '<button class="blink add" data-act="addto" data-l="'+k+'">+ Add</button></div></div><div class="brows" data-fit="'+k+'">'+open.map(x=>brow(k,x)).join('')+'</div></section>'}
+// the tasks section exists only while there is something to do or buy
+const openIn=k=>(listsData()[k]||[]).filter(x=>!x.done).length;
+function tasksPane(){const t=openIn('todo'),b=openIn('buy');if(!t&&!b)return '';
+  return '<section class="pane tsk'+(t&&b?' two':'')+'" aria-label="Tasks">'+(t?listSection('todo','To do'):'')+(b?listSection('buy','Groceries'):'')+'</section>'}
+function boardView(){return '<main class="home wkhome">'+glanceView()+'<div class="act">'+weekPane()+tasksPane()+'</div></main>'}
 // list rows that don't fit hide behind "+N more", which opens Lists
 // To do is sized by its own rows (up to 60% of the pane) and is fitted first, with its height frozen, so hiding its
 // overflow can't hand space back after Groceries has been measured; Groceries then fills what's left.
@@ -1265,15 +1198,12 @@ function fitRows(){const all=[...document.querySelectorAll('[data-fit]')];all.fo
   if(over[0]&&rows[0].getBoundingClientRect().bottom<=bot+1)over[0]=false;
   rows.forEach((r,i)=>{if(over[i]){r.hidden=true;n++}});if(n)B.insertAdjacentHTML('beforeend','<button class="bmore" data-act="open" data-s="lists">+'+n+' more ›</button>')})}
 function weatherSheet(){return '<div class="wxsheet">'+wxGlance()+tipView()+'<div class="g-sky">'+sunBlock()+'</div></div>'}
-// the agenda shows whole rows only; what doesn't fit is a tap away in the week view
-function fitAgenda(){const A=document.getElementById('agenda2');if(!A)return;const rows=[...A.querySelectorAll('.ag-row,.ag-day,.ag-allday')];rows.forEach(r=>r.hidden=false);
-  const old=A.querySelector('.ag-more');if(old)old.remove();if(A.scrollHeight<=A.clientHeight+1)return;
-  // measure every row before hiding any, so hiding one can't pull the next up into view
-  const lim=A.getBoundingClientRect().bottom-30,over=rows.map(r=>r.getBoundingClientRect().bottom>lim);let hid=0;
-  rows.forEach((r,i)=>{if(over[i]){r.hidden=true;hid+=r.classList.contains('ag-allday')?r.children.length:r.classList.contains('ag-row')?1:0}});
-  // never leave a day name with nothing under it
-  rows.forEach((r,i)=>{if(r.classList.contains('ag-day')&&!r.hidden&&(!rows[i+1]||rows[i+1].hidden))r.hidden=true});
-  if(hid)A.insertAdjacentHTML('beforeend','<button class="ag-more" data-act="open" data-s="week">'+hid+' more this week ›</button>')}
+// each day box shows whole rows only; what doesn't fit becomes "+N more", which opens the full week
+function fitCells(){document.querySelectorAll('[data-cell]').forEach(B=>{const rows=[...B.children].filter(r=>!r.classList.contains('cmore'));rows.forEach(r=>r.hidden=false);
+  const old=B.querySelector('.cmore');if(old)old.remove();if(B.scrollHeight<=B.clientHeight+1)return;
+  // leave room for the "+N more" line, so it never sits on top of an event
+  const lim=B.getBoundingClientRect().bottom-22,over=rows.map(r=>r.getBoundingClientRect().bottom>lim);let n=0;
+  rows.forEach((r,i)=>{if(over[i]){r.hidden=true;n++}});if(n)B.insertAdjacentHTML('beforeend','<button class="cmore" data-act="open" data-s="week">+'+n+' more</button>')})}
 
 /* ---------- kitchen timers, the leave-the-house countdown, and dated countdowns ---------- */
 const fmtLeft=ms=>{const t=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60;return (h?h+':'+pad(m):m)+':'+pad(x)};
@@ -1289,7 +1219,7 @@ function midView(){let h='';const lv=leaveInfo();
   if(!S.timers.length)countdowns().forEach(c=>{h+='<div class="g-count"><b>'+(c.days===0?'Today':c.days===1?'Tomorrow':c.days+' days')+'</b><span>'+(c.days>1?'until ':'')+esc(c.name)+'</span></div>'});
   h+='<div class="g-tbtns" role="group" aria-label="Start a timer"><span>Timer</span>'+[1,5,10,15,30].map(m=>'<button data-act="tstart" data-m="'+m+'" aria-label="'+m+' minute timer">'+m+(m===1?' min':'')+'</button>').join('')+'<button class="tnew" data-act="tnew" aria-label="Timer with a name or another length">+</button></div>';
   return h}
-function refreshMid(){const gm=document.getElementById('gmid'),sky=document.getElementById('sun');if(!gm)return;const h=S.layout==='board'?boardMid():midView();
+function refreshMid(){const gm=document.getElementById('gmid'),sky=document.getElementById('sun');if(!gm)return;const h=midView();
   if(h.replace(/<b id="tm-[^"]+">[^<]*<\/b>/g,'')!==(gm._sig||'')){gm.innerHTML=h;gm._sig=h.replace(/<b id="tm-[^"]+">[^<]*<\/b>/g,'')}
   if(sky)sky.hidden=!!(S.timers.length||leaveInfo())}
 let actx=null;
@@ -1499,10 +1429,9 @@ function timerView(){const d=S.tdraft||{};
 function keepTyped(){const n=document.getElementById('tname-in');if(n&&S.tdraft)S.tdraft.name=n.value}
 
 /* ---- what's new: shown once per release, until tapped or for a day ---- */
-const NEWS={id:'2026-11-22-clean',items:[
-  ['A cleaner home screen.','The calendar and your lists share a calm, flat surface: light by day, dark from dusk. The sky and its weather now live in the band across the top. Settings › Home board look › Sky brings back the full sky.'],
-  ['See one person’s day.','Tap Sam, Catherine or Dan above the calendar to show just their events. It goes back to Everyone after five minutes.'],
-  ['Your whole calendar, week by week.','Calendar shows seven days side by side; the arrow shows the week after. Tap any event for its time, place and calendar.'],
+const NEWS={id:'2026-11-22-week',items:[
+  ['The week at a glance.','Time, weather, the forecast and the clothing tip stay on the left. The right shows the whole week in day boxes, plus next week. Tap any event for its details.'],
+  ['Tasks appear when there are some.','Emailed to-dos and groceries show under the week, and the section disappears once they are done.'],
   ['The sky shows the weather.','Rain falls, snow drifts, clouds roll by, the sun’s rays turn, wind gusts, frost creeps in when it’s freezing and heat shimmers when it’s hot. Settings › Weather in the sky › Still turns it off.'],
   ['Clearing lists.','Tap × on any item, or swipe it left, to delete it (Undo brings it back). Clear removes everything ticked, and ticked items clear themselves after a day.'],
   ['To-dos come from email.','Email the hub (its address is in Lists and Settings) a line like “To do: call the plumber” and it appears on the home screen, ready to tick off.']]};
@@ -1590,9 +1519,8 @@ async function saveHouse(){const v=id=>{const n=document.getElementById(id);retu
   x.rev=Date.now();const moved=JSON.stringify(x.loc)!==JSON.stringify(P.loc);lsSet('hub-profile',JSON.stringify(x));applyProfile(x);S.err=null;
   if(moved){WX=null;lsSet('hub-wx','');WXstate='loading';loadWx().then(render)}closeSheet()}
 function settingsView(){return '<section class="card"><div class="setrow"><div><h3>Household</h3><div class="note">Your location, weekly schedule and checklists. Saved only on this tablet.</div></div><button class="pillbtn" data-act="open" data-s="house">Edit household</button></div></section>'+peopleSettings()+'<section class="card">'+
-  '<div class="setrow"><div><h3>Home layout</h3><div class="note">Home board splits the screen between the calendar and your lists, with the time, the day in a sentence, weather and timers along the top.</div></div><div class="seg"><button data-act="layout" data-v="classic" aria-pressed="'+(S.layout!=='board')+'">Classic</button><button data-act="layout" data-v="board" aria-pressed="'+(S.layout==='board')+'">Home board</button></div></div>'+'<div class="setrow"><div><h3>Glass effect</h3><div class="note">Light uses frosted panels without live blur. Faster on older tablets.</div></div><div class="seg"><button data-act="lite" data-v="0" aria-pressed="'+(!S.lite)+'">Full</button><button data-act="lite" data-v="1" aria-pressed="'+S.lite+'">Light</button></div></div>'+
+  '<div class="setrow"><div><h3>Home layout</h3><div class="note">Week shows the whole week of the calendar next to the time and weather, with tasks underneath whenever there are some. Classic has the daily checklist pane instead.</div></div><div class="seg"><button data-act="layout" data-v="board" aria-pressed="'+(S.layout==='board')+'">Week</button><button data-act="layout" data-v="classic" aria-pressed="'+(S.layout!=='board')+'">Classic</button></div></div>'+'<div class="setrow"><div><h3>Glass effect</h3><div class="note">Light uses frosted panels without live blur. Faster on older tablets.</div></div><div class="seg"><button data-act="lite" data-v="0" aria-pressed="'+(!S.lite)+'">Full</button><button data-act="lite" data-v="1" aria-pressed="'+S.lite+'">Light</button></div></div>'+
   '<div class="setrow"><div><h3>Daytime rest</h3><div class="note">After 20 minutes with no one touching it, the screen dims to protect it from burn-in. Tap anywhere to wake it.</div></div><div class="seg"><button data-act="dimset" data-v="0" aria-pressed="'+(!S.dimOn)+'">Off</button><button data-act="dimset" data-v="1" aria-pressed="'+S.dimOn+'">On</button></div></div>'+
-  (S.layout==='board'?'<div class="setrow"><div><h3>Home board look</h3><div class="note">Clean keeps the sky to a band across the top, over a flat surface that is light by day and dark from dusk. Sky puts the whole board on the moving sky.</div></div><div class="seg"><button data-act="clean" data-v="1" aria-pressed="'+S.cleanOn+'">Clean</button><button data-act="clean" data-v="0" aria-pressed="'+(!S.cleanOn)+'">Sky</button></div></div>':'')+
   '<div class="setrow"><div><h3>Weather in the sky</h3><div class="note">Rain, snow, clouds, sun, wind, frost and heat move gently behind the hub. Still turns the motion off.</div></div><div class="seg"><button data-act="wxfx" data-v="1" aria-pressed="'+S.wxFx+'">Moving</button><button data-act="wxfx" data-v="0" aria-pressed="'+(!S.wxFx)+'">Still</button></div></div>'+
   '<div class="setrow"><div><h3>Sky</h3><div class="note">Follow the sun moves the light and color with the real sky over '+(LOC?LOC.label:'not set')+'. Always dusk keeps the warm evening look all day.</div></div><div class="seg"><button data-act="skymode" data-v="live" aria-pressed="'+(S.skyMode==='live')+'">Follow the sun</button><button data-act="skymode" data-v="dusk" aria-pressed="'+(S.skyMode==='dusk')+'">Always dusk</button></div></div>'+
   '<div class="setrow" style="flex-direction:column;align-items:stretch"><div><h3>Preview the day</h3><div class="note">Drag to watch the sky from dawn to night. <b id="prevlbl">'+(S.previewMin==null?'Showing now':fmtTime(skyNow().getTime()))+'</b></div></div><input type="range" id="skyprev" min="0" max="1439" step="5" value="'+(S.previewMin==null?new Date().getHours()*60+new Date().getMinutes():S.previewMin)+'" aria-label="Preview time of day" style="width:100%;accent-color:#fff"><div><button class="pillbtn sm" data-act="prevnow">Back to now</button></div></div>'+
@@ -1653,7 +1581,7 @@ function fitLists(){document.querySelectorAll('.now .list').forEach(L=>{const ro
   const room=L.clientHeight-52;let shown=0;for(const r of rows){if(r.offsetTop-L.offsetTop+r.offsetHeight<=room)shown++;else break}
   rows.slice(Math.max(1,shown)).forEach(r=>r.hidden=true);const n=rows.length-Math.max(1,shown);
   L.insertAdjacentHTML('beforeend','<button class="jc add more" '+(L.dataset.more?'data-act="open" data-s="'+L.dataset.more+'"':'data-act="openday" data-d="'+S.today+'"')+'>+'+n+' more ›</button>')})}
-addEventListener('resize',()=>requestAnimationFrame(()=>{fitLists();fitAgenda();fitRows();setBand()}));
+addEventListener('resize',()=>requestAnimationFrame(()=>{fitLists();fitRows();fitCells()}));
 // a chip row that is wider than the pane drops its last job chips into the "+N more" count
 function fitChips(){document.querySelectorAll('.now .jcs').forEach(R=>{let guard=6;while(R.scrollWidth>R.clientWidth+1&&guard--){const more=R.querySelector('.jc.more'),jobs=[...R.querySelectorAll('.jc[data-act="opengroup"]')];if(!jobs.length)break;
   jobs[jobs.length-1].remove();if(more){more.textContent='+'+(parseInt(more.textContent.slice(1))+1)+' more ›'}else{const side=R.querySelector('.side');(side||null);R.insertAdjacentHTML('beforeend','<button class="jc more" data-act="openday" data-d="'+S.today+'">+1 more ›</button>')}}})}
@@ -1665,11 +1593,10 @@ function render(){
   const sb=document.getElementById('sheetbody'),sbTop=sb?sb.scrollTop:0,prevSheet=S._lastSheet;
   document.documentElement.classList.toggle('fx-paused',!!(S.amb||S.dim)); // no moving weather under a dimmed or sleeping screen
   S.evList=[];
-  const clean=S.layout==='board'&&S.cleanOn;document.documentElement.classList.toggle('clean',clean);
-  app.innerHTML=(clean?'<div class="cleanpaper" aria-hidden="true"></div>':'')+(S.layout==='board'?boardView():'<main class="home">'+glanceView()+'<div class="act">'+nowPane()+'<div class="cards">'+mealCard()+nextCard()+'</div></div></main>')+dock()+sheetView()+
+  app.innerHTML=(S.layout==='board'?boardView():'<main class="home">'+glanceView()+'<div class="act">'+nowPane()+'<div class="cards">'+mealCard()+nextCard()+'</div></div></main>')+dock()+sheetView()+
     (S.err?'<div class="status glass" role="status">'+esc(S.err)+'</div>':S.toast?'<button class="status glass" data-act="open" data-s="lists" style="border:0;color:inherit;font:inherit;font-size:14px;cursor:pointer;min-height:44px">'+esc(S.toast)+' ›</button>':battNote())+(S.undo?'<div class="status glass undo" role="status">'+(S.undo.verb||'Checked')+' “'+esc(S.undo.label.slice(0,48))+'”<button data-act="undo">Undo</button></div>':S.news&&!S.sheet?'<button class="status glass news" data-act="news">What’s new ›</button>':'')+(S.amb?ambientView():'')+(S.dim&&!S.amb?'<div class="dimmer" aria-hidden="true"></div>':'')+(S.ring?'<div class="alarm" data-act="ringoff" role="alertdialog" aria-label="Timer done"><b>Time’s up</b><span>'+esc(S.ring.label)+'</span><em>Tap anywhere to stop</em></div>':'');
   calSheet();
-  requestAnimationFrame(()=>{fitLists();fitChips();fitAgenda();fitRows();setBand()});
+  requestAnimationFrame(()=>{fitLists();fitChips();fitRows();fitCells()}); // tasks first: the week gets what's left
   // a redraw of a sheet that's already open keeps its scroll and doesn't replay the slide-up
   const nb=document.getElementById('sheetbody');if(nb&&prevSheet===S.sheet+S.sel){nb.scrollTop=sbTop;const sh=nb.closest('.sheet');if(sh)sh.style.animation='none'}S._lastSheet=S.sheet+S.sel;
   document.documentElement.style.overflow=S.sheet?'hidden':'';
@@ -1741,7 +1668,6 @@ function onAct(b){const a=b.dataset.act,ds=b.dataset;
   if(a==='evopen'){const e=(S.evList||[])[+ds.i];if(!e)return;S.evPick=e;openSheet('event');return}
   if(a==='wkoff'){S.weekOff=+ds.v;render();return}
   if(a==='who'){S.who=ds.id||null;clearTimeout(S._whoT);if(S.who)S._whoT=setTimeout(()=>{S.who=null;render()},300000);render();return}
-  if(a==='clean'){S.cleanOn=ds.v==='1';lsSet('hub-clean',ds.v);render();return}
   if(a==='wxfx'){S.wxFx=ds.v==='1';lsSet('hub-wxfx',ds.v);wxKey='';paintWx();render();return}
   if(a==='news'){S.news=false;lsSet('hub-news-seen',NEWS.id);openSheet('news');return}
   if(a==='dimset'){S.dimOn=ds.v==='1';lsSet('hub-dim',ds.v);render();return}
@@ -1831,13 +1757,12 @@ S._ri=routineIdx(new Date());
 S.layout=/[?&]look=board\b/.test(location.search)?'board':lsGet('hub-layout','board');
 if(S.layout==='cal')S.layout='board'; // the earlier "Calendar first" preview became the Home board
 S.wxFx=lsGet('hub-wxfx','1')==='1';
-S.cleanOn=lsGet('hub-clean','1')==='1';
 // the "What's new" note stays until it's tapped, or for a day after it first appears
 (function(){if(lsGet('hub-news-seen','')===NEWS.id)return;const f=lsGet('hub-news-first','').split(':');
   if(f[0]!==NEWS.id){lsSet('hub-news-first',NEWS.id+':'+Date.now());S.news=true}else S.news=Date.now()-(+f[1]||0)<864e5})();
 paintSky();render();setInterval(tick,15000);
 // web fonts change text sizes once they arrive, so fit the rows again then
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>requestAnimationFrame(()=>{fitLists();fitAgenda();fitRows();setBand()}));setInterval(timerTick,1000);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>requestAnimationFrame(()=>{fitLists();fitRows();fitCells()}));setInterval(timerTick,1000);
 loadWx();setInterval(loadWx,20*60*1000);
 const b64u=t=>Uint8Array.from(atob(t.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
 async function pullProfile(){const key=lsGet('hub-pkey','');if(!key||!(window.crypto&&crypto.subtle))return;
