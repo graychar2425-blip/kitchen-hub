@@ -657,6 +657,44 @@ button.pill:active{transform:scale(.97)}
 .bempty span{font-size:18px;line-height:1.4;color:var(--muted);max-width:30em}
 .bfoot{flex:none;display:flex;flex-wrap:wrap;gap:6px;padding-top:10px}
 .bfoot .jc em{font-style:normal;color:var(--muted)}
+/* ---------- "Clean" look for the Home board: the sky is a window band behind the header; below it a flat
+   surface with solid cards (light by day like Skylight and Hearth, deep navy from dusk), people as colour bars ---------- */
+html.clean{--paper:#0D1422;--card:#151E2E;--card2:#1B2638;--acc:#FFD58A;--edge:rgba(255,255,255,.08)}
+html.clean.day{--paper:#E9EDF2;--card:#FFFFFF;--card2:#F4F6F9;--acc:#A35F00;--edge:#DCE2E9}
+.cleanpaper{position:fixed;left:0;right:0;bottom:0;top:var(--band,176px);z-index:-1;background:var(--paper);box-shadow:0 -1px 0 rgba(0,0,0,.1)}
+html.clean .board .pane,html.clean .dock.pane,html.clean .sheet.glass,html.clean .status.glass{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none;border:1px solid var(--edge);box-shadow:0 1px 2px rgba(10,20,40,.06),0 8px 28px rgba(10,20,40,.08)}
+html.clean .sheet.glass::after,html.clean .status.glass::after{display:none}
+html.clean .board .pane{border-radius:18px}
+html.clean.day .bcal,html.clean.day .blist,html.clean.day .dock,html.clean.day .sheet,html.clean.day .status{--ink:#17202B;--muted:#4F5B6A;--faint:#8792A0;--line:#E2E7ED;--chip:#F0F3F7;color:var(--ink);text-shadow:none;color-scheme:light}
+html.clean.day .ck .box{border-color:#9AA5B1}
+html.clean.day .blink.add,html.clean.day .ag-chip,html.clean.day .wk-tag,html.clean.day .jc{background:var(--chip);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink)}
+html.clean.day .ag-chip.hol,html.clean.day .wk-tag.hol,html.clean.day .wk-tag.job{background:none;color:var(--muted)}
+html.clean .ag-row .tt small,html.clean .wk-ev em{color:var(--acc)}
+html.clean.day .ag-new{background:rgba(163,95,0,.12);color:var(--acc)}
+html.clean.day .brow{border-bottom-color:var(--line)}
+/* on white, a person's colour uses its deeper shade; events with no person get a quiet grey, not black */
+html.clean.day .bcal .ag-row .dot{background:#AEB7C2}
+html.clean.day .bcal .ag-row .dot.pdot{background:var(--pi)}
+html.clean.day .wk-ev{border-left-color:#AEB7C2}
+html.clean.day .wk-ev[style*="--pi"]{border-left-color:var(--pi)}
+html.clean.day .dock button{color:var(--ink)}
+html.clean.day .dock button[aria-current="true"]{background:var(--chip)}
+html.clean.day .sheet .card{background:var(--card2);border-color:var(--line)}
+html.clean.day input[type=text],html.clean.day textarea,html.clean.day select,html.clean.day input[type=time]{background:var(--chip);border-color:var(--line);color:var(--ink)}
+html.clean.day .primary,html.clean.day .addrow button,html.clean.day .seg button[aria-pressed="true"]{background:#17202B;color:#fff}
+html.clean.day .pillbtn,html.clean.day .iconbtn,html.clean.day .undo button,html.clean.day .preview{background:var(--chip);color:var(--ink)}
+html.clean.day .wk-col{background:var(--card2)}
+html.clean.day .wk-col.today{background:#FFF5E2;box-shadow:inset 0 0 0 1px #EFC77F}
+html.clean.day .wk-ev{background:#fff;box-shadow:0 1px 2px rgba(10,20,40,.1)}
+html.clean.day .sheet .wxsheet{background:linear-gradient(160deg,#2B5EB2,#5A92D6);border-radius:16px;padding:18px;color:#fff;--ink:#fff;--muted:rgba(255,255,255,.86);--faint:rgba(255,255,255,.62)}
+html.clean.day .sheet .wxsheet .g-seg button[aria-pressed="true"]{background:rgba(255,255,255,.25);color:#fff}
+html.clean .board .bpill{background:rgba(20,24,34,.55)}
+/* whose events: Everyone, or one person */
+.whos{display:flex;gap:4px;flex-wrap:nowrap;overflow:hidden;flex:none;margin:2px 0 4px -6px}
+.whob{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;background:none;color:var(--muted);font:inherit;font-size:15px;font-weight:600;min-height:44px;padding:0 12px 0 6px;cursor:pointer}
+.whob.all{padding:0 12px}
+.whob[aria-pressed="true"]{background:var(--chip);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.whob .av{width:26px;height:26px;font-size:12px}
 @media (max-width:980px),(orientation:portrait){.board{grid-template-columns:1fr;height:auto}.bhead{flex-wrap:wrap}.bside{max-width:100%;justify-content:flex-start}.brows{overflow:visible}}
 .agenda2{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;border:0;background:none;color:inherit;font:inherit;text-align:left;padding:0;margin-top:16px;cursor:pointer;width:100%;text-shadow:inherit}
 .ag-day{font-family:"Outfit",var(--ui);font-weight:300;font-size:22px;line-height:1.2;margin:12px 0 2px;flex:none}
@@ -672,8 +710,8 @@ button.pill:active{transform:scale(.97)}
 .ag-more{position:absolute;left:0;bottom:0;border:0;background:none;color:var(--muted);font:inherit;font-size:15px;font-weight:600;min-height:32px;padding:0;cursor:pointer}
 button.ag-row{width:100%;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:10px}
 button.ag-row:active,.ag-chip:active{background:rgba(255,255,255,.1)}
-.ag-allday{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 6px;flex:none}
-.ag-chip{border:0;border-radius:10px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);color:var(--ink);font:inherit;font-size:16px;font-weight:500;min-height:40px;padding:4px 12px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ag-allday{display:flex;flex-wrap:wrap;gap:6px;padding:3px 0 4px;flex:none}
+.ag-chip{border:0;border-radius:10px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);color:var(--ink);font:inherit;font-size:16px;font-weight:500;min-height:34px;padding:2px 12px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ag-chip.hol{background:none;color:var(--muted)}
 .ag-chip .ag-new{margin-left:4px}
 .bcal .ag-chip{font-size:17px}
@@ -1044,6 +1082,8 @@ function paintSky(){const t=skyNow(),sun=S.skyMode==='dusk'&&S.previewMin==null?
   if(WX&&WX.current){const k=WMO(WX.current.weather_code)[1];if(k==='rain'||k==='storm'||k==='snow')vc+=' wet';else if(k==='cloud'||k==='fog')vc+=' cloudy'}
   if(veil.className!==vc)veil.className=vc;
   document.documentElement.classList.toggle('lite',S.lite);document.documentElement.classList.toggle('night',el<-6);
+  // the Clean look is light while the sun is up and goes dark at dusk, so the screen doesn't glare at night
+  document.documentElement.classList.toggle('day',el>=-3);
   paintWx();
 }
 
@@ -1133,7 +1173,13 @@ function markEvents(){const now=Date.now(),first=!EVSEEN&&!Object.keys(evSeen).l
 const isNew=e=>{const t=evSeen[e.title+'|'+(e.allDay?e.day:e.startMs)];return !!t&&Date.now()-t<864e5};
 function untilText(ms){const m=Math.round((ms-Date.now())/60000);return m<=0?'now':'in '+fmtDur(m)}
 // a day's calendar events plus household visits (cleaner, helper), all-day first, then by time
-function dayEvents(d,i){return CAL.events.filter(e=>e.day===d).concat(householdEvents(d,i===0?'Today':'Tomorrow').filter(isVisit).map(x=>({title:x.title,allDay:true,day:d,startMs:0,visit:1,cat:'hm'}))).sort(byStart)}
+function dayEvents(d,i){const all=CAL.events.filter(e=>e.day===d).concat(householdEvents(d,i===0?'Today':'Tomorrow').filter(isVisit).map(x=>({title:x.title,allDay:true,day:d,startMs:0,visit:1,cat:'hm'}))).sort(byStart);
+  // one person picked: only events with their name in the title (holidays still show, for context)
+  const who=personById(S.who);return who?all.filter(e=>e.cat==='hol'||(personFor(e.title)||{}).id===who.id):all}
+// Everyone, or one person's events: the profile row family calendars use
+function whoRow(){const ps=people();if(!ps.length)return '';const cur=personById(S.who)?S.who:'';
+  return '<div class="whos" role="group" aria-label="Whose events"><button class="whob all" data-act="who" data-id="" aria-pressed="'+!cur+'">Everyone</button>'+
+    ps.map(p=>'<button class="whob" data-act="who" data-id="'+p.id+'" aria-pressed="'+(cur===p.id)+'">'+av(p)+esc(p.n)+'</button>').join('')+'</div>'}
 // events on screen are numbered per redraw, so a tap can open the right one
 function evIdx(e){S.evList=S.evList||[];S.evList.push(e);return S.evList.length-1}
 function eventView(){const e=S.evPick;if(!e)return '';const p=personFor(e.title),d=parse(e.day);
@@ -1187,7 +1233,7 @@ function boardHead(){const s=daySentence();
   return '<header class="bhead"><div class="bclock"><div class="g-time" id="time">'+clockHTML()+'</div><div class="bday"><b>'+parse(S.today).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</b>'+(s?'<span>'+esc(s)+'</span>':'')+'</div></div>'+
     '<div class="bside" id="gmid">'+boardMid()+'</div></header>'}
 function calColumn(){const ahead=lookAhead(),d=ahead?addDays(S.today,1):S.today,D=DAYS[dowOf(d)],pl=(weekData(mondayOf(d)).plan||{})[D.k]||{};
-  return '<div class="bh"><h2>Calendar</h2><button class="blink" data-act="open" data-s="week">Week ›</button></div>'+
+  return '<div class="bh"><h2>Calendar</h2><button class="blink" data-act="open" data-s="week">Week ›</button></div>'+whoRow()+
     '<div class="agenda2" id="agenda2" aria-label="The next few days">'+agendaView()+'</div>'+
     '<button class="bdin" data-act="qedit" data-k="dinner" data-d="'+d+'"><span>'+(ahead?'Tomorrow’s dinner':'Dinner tonight')+'</span>'+(pl.dinner?'<b>'+esc(pl.dinner)+'</b>':'<b class="empty">Plan it</b>')+'<i aria-hidden="true">›</i></button>'}
 // one list row: tick it, tap × or swipe left to delete; both can be undone
@@ -1206,6 +1252,8 @@ function listColumn(){const L=listsData(),addr=INBOX.status&&INBOX.status.addres
   if(more.length)h+='<div class="bfoot">'+more.map(o=>'<button class="jc" data-act="open" data-s="lists">'+esc(LSHORT[o.x.k])+' <em>'+o.n+'</em></button>').join('')+'</div>';
   return h}
 function boardView(){return '<main class="board">'+boardHead()+'<section class="pane bcal" aria-label="Calendar">'+calColumn()+'</section><section class="pane blist" aria-label="Lists">'+listColumn()+'</section></main>'}
+// the sky shows only behind the header: the flat surface starts just under it
+function setBand(){const h=document.querySelector('.bhead');if(h)document.documentElement.style.setProperty('--band',Math.round(h.getBoundingClientRect().bottom+12)+'px')}
 // list rows that don't fit hide behind "+N more", which opens Lists
 // To do is sized by its own rows (up to 60% of the pane) and is fitted first, with its height frozen, so hiding its
 // overflow can't hand space back after Groceries has been measured; Groceries then fills what's left.
@@ -1451,8 +1499,9 @@ function timerView(){const d=S.tdraft||{};
 function keepTyped(){const n=document.getElementById('tname-in');if(n&&S.tdraft)S.tdraft.name=n.value}
 
 /* ---- what's new: shown once per release, until tapped or for a day ---- */
-const NEWS={id:'2026-11-22-calendar',items:[
-  ['A new home screen.','The calendar and your lists now share the screen, with the day in one sentence along the top. Classic is still in Settings › Home layout.'],
+const NEWS={id:'2026-11-22-clean',items:[
+  ['A cleaner home screen.','The calendar and your lists share a calm, flat surface: light by day, dark from dusk. The sky and its weather now live in the band across the top. Settings › Home board look › Sky brings back the full sky.'],
+  ['See one person’s day.','Tap Sam, Catherine or Dan above the calendar to show just their events. It goes back to Everyone after five minutes.'],
   ['Your whole calendar, week by week.','Calendar shows seven days side by side; the arrow shows the week after. Tap any event for its time, place and calendar.'],
   ['The sky shows the weather.','Rain falls, snow drifts, clouds roll by, the sun’s rays turn, wind gusts, frost creeps in when it’s freezing and heat shimmers when it’s hot. Settings › Weather in the sky › Still turns it off.'],
   ['Clearing lists.','Tap × on any item, or swipe it left, to delete it (Undo brings it back). Clear removes everything ticked, and ticked items clear themselves after a day.'],
@@ -1543,6 +1592,7 @@ async function saveHouse(){const v=id=>{const n=document.getElementById(id);retu
 function settingsView(){return '<section class="card"><div class="setrow"><div><h3>Household</h3><div class="note">Your location, weekly schedule and checklists. Saved only on this tablet.</div></div><button class="pillbtn" data-act="open" data-s="house">Edit household</button></div></section>'+peopleSettings()+'<section class="card">'+
   '<div class="setrow"><div><h3>Home layout</h3><div class="note">Home board splits the screen between the calendar and your lists, with the time, the day in a sentence, weather and timers along the top.</div></div><div class="seg"><button data-act="layout" data-v="classic" aria-pressed="'+(S.layout!=='board')+'">Classic</button><button data-act="layout" data-v="board" aria-pressed="'+(S.layout==='board')+'">Home board</button></div></div>'+'<div class="setrow"><div><h3>Glass effect</h3><div class="note">Light uses frosted panels without live blur. Faster on older tablets.</div></div><div class="seg"><button data-act="lite" data-v="0" aria-pressed="'+(!S.lite)+'">Full</button><button data-act="lite" data-v="1" aria-pressed="'+S.lite+'">Light</button></div></div>'+
   '<div class="setrow"><div><h3>Daytime rest</h3><div class="note">After 20 minutes with no one touching it, the screen dims to protect it from burn-in. Tap anywhere to wake it.</div></div><div class="seg"><button data-act="dimset" data-v="0" aria-pressed="'+(!S.dimOn)+'">Off</button><button data-act="dimset" data-v="1" aria-pressed="'+S.dimOn+'">On</button></div></div>'+
+  (S.layout==='board'?'<div class="setrow"><div><h3>Home board look</h3><div class="note">Clean keeps the sky to a band across the top, over a flat surface that is light by day and dark from dusk. Sky puts the whole board on the moving sky.</div></div><div class="seg"><button data-act="clean" data-v="1" aria-pressed="'+S.cleanOn+'">Clean</button><button data-act="clean" data-v="0" aria-pressed="'+(!S.cleanOn)+'">Sky</button></div></div>':'')+
   '<div class="setrow"><div><h3>Weather in the sky</h3><div class="note">Rain, snow, clouds, sun, wind, frost and heat move gently behind the hub. Still turns the motion off.</div></div><div class="seg"><button data-act="wxfx" data-v="1" aria-pressed="'+S.wxFx+'">Moving</button><button data-act="wxfx" data-v="0" aria-pressed="'+(!S.wxFx)+'">Still</button></div></div>'+
   '<div class="setrow"><div><h3>Sky</h3><div class="note">Follow the sun moves the light and color with the real sky over '+(LOC?LOC.label:'not set')+'. Always dusk keeps the warm evening look all day.</div></div><div class="seg"><button data-act="skymode" data-v="live" aria-pressed="'+(S.skyMode==='live')+'">Follow the sun</button><button data-act="skymode" data-v="dusk" aria-pressed="'+(S.skyMode==='dusk')+'">Always dusk</button></div></div>'+
   '<div class="setrow" style="flex-direction:column;align-items:stretch"><div><h3>Preview the day</h3><div class="note">Drag to watch the sky from dawn to night. <b id="prevlbl">'+(S.previewMin==null?'Showing now':fmtTime(skyNow().getTime()))+'</b></div></div><input type="range" id="skyprev" min="0" max="1439" step="5" value="'+(S.previewMin==null?new Date().getHours()*60+new Date().getMinutes():S.previewMin)+'" aria-label="Preview time of day" style="width:100%;accent-color:#fff"><div><button class="pillbtn sm" data-act="prevnow">Back to now</button></div></div>'+
@@ -1565,7 +1615,7 @@ function sheetView(){if(!S.sheet||(S.sheet==='cal'&&!INART&&!FEED))return '';let
   else if(S.sheet==='cal'){title='Calendar';sub='Next 7 days';body=calView()}
   else if(S.sheet==='house'){title='Household';sub='Saved only on this tablet';body=houseView()}
   else if(S.sheet==='week'){const a=addDays(S.today,S.weekOff?7:0),b=addDays(a,6),f=x=>parse(x).toLocaleDateString(undefined,{month:'short',day:'numeric'});
-    title=S.weekOff?'The week after':'This week';sub=f(a)+' to '+f(b);
+    const wp=personById(S.who);title=S.weekOff?'The week after':'This week';sub=f(a)+' to '+f(b)+(wp?', '+wp.n+'’s events':'');
     nav='<button class="iconbtn" data-act="wkoff" data-v="0" aria-label="This week"'+(S.weekOff?'':' disabled style="opacity:.35"')+'>‹</button><button class="iconbtn" data-act="wkoff" data-v="1" aria-label="The week after"'+(S.weekOff?' disabled style="opacity:.35"':'')+'>›</button>';body=weekView()}
   else if(S.sheet==='qedit'){const q=S.q,D=DAYS[dowOf(q.d)];small=true;title={dinner:'Dinner',lunch:'Kids’ lunch',must:'Must happen'}[q.k];sub=q.d===S.today?(q.k==='dinner'?'Tonight':'Today'):D.name;body=qeditView()}
   else if(S.sheet==='add'){small=true;title='Add to a list';sub='Type it, tap Add. It’s on every screen right away.';body=addView()}
@@ -1603,7 +1653,7 @@ function fitLists(){document.querySelectorAll('.now .list').forEach(L=>{const ro
   const room=L.clientHeight-52;let shown=0;for(const r of rows){if(r.offsetTop-L.offsetTop+r.offsetHeight<=room)shown++;else break}
   rows.slice(Math.max(1,shown)).forEach(r=>r.hidden=true);const n=rows.length-Math.max(1,shown);
   L.insertAdjacentHTML('beforeend','<button class="jc add more" '+(L.dataset.more?'data-act="open" data-s="'+L.dataset.more+'"':'data-act="openday" data-d="'+S.today+'"')+'>+'+n+' more ›</button>')})}
-addEventListener('resize',()=>requestAnimationFrame(()=>{fitLists();fitAgenda();fitRows()}));
+addEventListener('resize',()=>requestAnimationFrame(()=>{fitLists();fitAgenda();fitRows();setBand()}));
 // a chip row that is wider than the pane drops its last job chips into the "+N more" count
 function fitChips(){document.querySelectorAll('.now .jcs').forEach(R=>{let guard=6;while(R.scrollWidth>R.clientWidth+1&&guard--){const more=R.querySelector('.jc.more'),jobs=[...R.querySelectorAll('.jc[data-act="opengroup"]')];if(!jobs.length)break;
   jobs[jobs.length-1].remove();if(more){more.textContent='+'+(parseInt(more.textContent.slice(1))+1)+' more ›'}else{const side=R.querySelector('.side');(side||null);R.insertAdjacentHTML('beforeend','<button class="jc more" data-act="openday" data-d="'+S.today+'">+1 more ›</button>')}}})}
@@ -1615,10 +1665,11 @@ function render(){
   const sb=document.getElementById('sheetbody'),sbTop=sb?sb.scrollTop:0,prevSheet=S._lastSheet;
   document.documentElement.classList.toggle('fx-paused',!!(S.amb||S.dim)); // no moving weather under a dimmed or sleeping screen
   S.evList=[];
-  app.innerHTML=(S.layout==='board'?boardView():'<main class="home">'+glanceView()+'<div class="act">'+nowPane()+'<div class="cards">'+mealCard()+nextCard()+'</div></div></main>')+dock()+sheetView()+
+  const clean=S.layout==='board'&&S.cleanOn;document.documentElement.classList.toggle('clean',clean);
+  app.innerHTML=(clean?'<div class="cleanpaper" aria-hidden="true"></div>':'')+(S.layout==='board'?boardView():'<main class="home">'+glanceView()+'<div class="act">'+nowPane()+'<div class="cards">'+mealCard()+nextCard()+'</div></div></main>')+dock()+sheetView()+
     (S.err?'<div class="status glass" role="status">'+esc(S.err)+'</div>':S.toast?'<button class="status glass" data-act="open" data-s="lists" style="border:0;color:inherit;font:inherit;font-size:14px;cursor:pointer;min-height:44px">'+esc(S.toast)+' ›</button>':battNote())+(S.undo?'<div class="status glass undo" role="status">'+(S.undo.verb||'Checked')+' “'+esc(S.undo.label.slice(0,48))+'”<button data-act="undo">Undo</button></div>':S.news&&!S.sheet?'<button class="status glass news" data-act="news">What’s new ›</button>':'')+(S.amb?ambientView():'')+(S.dim&&!S.amb?'<div class="dimmer" aria-hidden="true"></div>':'')+(S.ring?'<div class="alarm" data-act="ringoff" role="alertdialog" aria-label="Timer done"><b>Time’s up</b><span>'+esc(S.ring.label)+'</span><em>Tap anywhere to stop</em></div>':'');
   calSheet();
-  requestAnimationFrame(()=>{fitLists();fitChips();fitAgenda();fitRows()});
+  requestAnimationFrame(()=>{fitLists();fitChips();fitAgenda();fitRows();setBand()});
   // a redraw of a sheet that's already open keeps its scroll and doesn't replay the slide-up
   const nb=document.getElementById('sheetbody');if(nb&&prevSheet===S.sheet+S.sel){nb.scrollTop=sbTop;const sh=nb.closest('.sheet');if(sh)sh.style.animation='none'}S._lastSheet=S.sheet+S.sel;
   document.documentElement.style.overflow=S.sheet?'hidden':'';
@@ -1689,6 +1740,8 @@ function onAct(b){const a=b.dataset.act,ds=b.dataset;
   if(a==='layout'){S.layout=ds.v;lsSet('hub-layout',ds.v);render();return}
   if(a==='evopen'){const e=(S.evList||[])[+ds.i];if(!e)return;S.evPick=e;openSheet('event');return}
   if(a==='wkoff'){S.weekOff=+ds.v;render();return}
+  if(a==='who'){S.who=ds.id||null;clearTimeout(S._whoT);if(S.who)S._whoT=setTimeout(()=>{S.who=null;render()},300000);render();return}
+  if(a==='clean'){S.cleanOn=ds.v==='1';lsSet('hub-clean',ds.v);render();return}
   if(a==='wxfx'){S.wxFx=ds.v==='1';lsSet('hub-wxfx',ds.v);wxKey='';paintWx();render();return}
   if(a==='news'){S.news=false;lsSet('hub-news-seen',NEWS.id);openSheet('news');return}
   if(a==='dimset'){S.dimOn=ds.v==='1';lsSet('hub-dim',ds.v);render();return}
@@ -1778,12 +1831,13 @@ S._ri=routineIdx(new Date());
 S.layout=/[?&]look=board\b/.test(location.search)?'board':lsGet('hub-layout','board');
 if(S.layout==='cal')S.layout='board'; // the earlier "Calendar first" preview became the Home board
 S.wxFx=lsGet('hub-wxfx','1')==='1';
+S.cleanOn=lsGet('hub-clean','1')==='1';
 // the "What's new" note stays until it's tapped, or for a day after it first appears
 (function(){if(lsGet('hub-news-seen','')===NEWS.id)return;const f=lsGet('hub-news-first','').split(':');
   if(f[0]!==NEWS.id){lsSet('hub-news-first',NEWS.id+':'+Date.now());S.news=true}else S.news=Date.now()-(+f[1]||0)<864e5})();
 paintSky();render();setInterval(tick,15000);
 // web fonts change text sizes once they arrive, so fit the rows again then
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>requestAnimationFrame(()=>{fitLists();fitAgenda();fitRows()}));setInterval(timerTick,1000);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>requestAnimationFrame(()=>{fitLists();fitAgenda();fitRows();setBand()}));setInterval(timerTick,1000);
 loadWx();setInterval(loadWx,20*60*1000);
 const b64u=t=>Uint8Array.from(atob(t.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
 async function pullProfile(){const key=lsGet('hub-pkey','');if(!key||!(window.crypto&&crypto.subtle))return;
