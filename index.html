@@ -48,6 +48,34 @@ h1,h2,h3{margin:0;text-wrap:balance;font-weight:700}
 .sky .stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff}
 .sky .horizon{background:linear-gradient(0deg,var(--hz,transparent) 0%,transparent 42%)}
 .sky .sunglow{background:radial-gradient(circle at var(--sx,80%) var(--sy,30%),var(--sc0,transparent) 0,var(--sc1,transparent) 7vmin,var(--sc2,transparent) 26vmin,transparent 55vmin)}
+/* moving weather: only transform and opacity animate */
+.wxfx{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.wxfx i{position:absolute;display:block}
+.wxfx .cl{left:0;border-radius:50%;background:radial-gradient(closest-side,rgba(255,255,255,.5),rgba(255,255,255,.2) 55%,transparent);animation:drift linear infinite}
+.wxfx.dark .cl{background:radial-gradient(closest-side,rgba(160,175,210,.34),rgba(160,175,210,.12) 55%,transparent)}
+@keyframes drift{from{transform:translate3d(-90vw,0,0)}to{transform:translate3d(110vw,0,0)}}
+.wxfx .rain{position:absolute;inset:-25% -15%}
+.wxfx.windy .rain{transform:rotate(14deg)}
+.wxfx .dr{top:-20%;width:3px;border-radius:3px;background:linear-gradient(rgba(220,236,255,0),rgba(230,242,255,.95));animation:fall linear infinite}
+@keyframes fall{to{transform:translate3d(0,150vh,0)}}
+.wxfx .sn{top:-5%;border-radius:50%;background:#fff;box-shadow:0 0 6px 2px rgba(255,255,255,.5);animation:snowfall linear infinite}
+@keyframes snowfall{0%{transform:translate3d(0,0,0)}50%{transform:translate3d(var(--sw),55vh,0)}100%{transform:translate3d(0,112vh,0)}}
+.wxfx .rays{left:var(--sx,80%);top:var(--sy,30%);width:120vmin;height:120vmin;margin:-60vmin 0 0 -60vmin;border-radius:50%;
+  background:repeating-conic-gradient(rgba(255,244,214,.16) 0deg 5deg,transparent 5deg 15deg);
+  -webkit-mask-image:radial-gradient(circle,#000 8%,transparent 62%);mask-image:radial-gradient(circle,#000 8%,transparent 62%);animation:spin 90s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.wxfx .fg{left:-50%;width:200%;top:32%;height:42%;background:linear-gradient(transparent,rgba(235,240,250,.42),transparent);animation:mist 50s ease-in-out infinite alternate}
+.wxfx .fg.b{top:56%;opacity:.8;animation-duration:70s;animation-direction:alternate-reverse}
+@keyframes mist{from{transform:translate3d(-12%,0,0)}to{transform:translate3d(12%,0,0)}}
+.wxfx .flash{inset:0;background:rgba(235,240,255,.85);opacity:0;animation:flash 12s infinite}
+@keyframes flash{0%,90%{opacity:0}91%{opacity:.6}92%{opacity:.08}93.5%{opacity:.45}96%,100%{opacity:0}}
+.wxfx .wd{left:0;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:gust linear infinite}
+@keyframes gust{from{transform:translate3d(-40vw,0,0)}to{transform:translate3d(120vw,-4vh,0)}}
+.wxfx .frost{inset:0;background:radial-gradient(120% 90% at 50% 50%,transparent 45%,rgba(215,238,255,.55) 100%);animation:breathe 8s ease-in-out infinite alternate}
+@keyframes breathe{from{opacity:.55}to{opacity:1}}
+.wxfx .haze{left:0;right:0;bottom:0;height:45%;transform-origin:bottom;background:linear-gradient(0deg,rgba(255,140,70,.34),transparent);animation:shimmer 3.5s ease-in-out infinite alternate}
+@keyframes shimmer{from{transform:scaleY(1) skewX(0)}to{transform:scaleY(1.06) skewX(1.5deg)}}
+.fx-paused .wxfx *{animation-play-state:paused}
 .veil{position:fixed;inset:0;z-index:-1;pointer-events:none;background:rgba(40,50,70,0);transition:background 3s ease}
 .veil::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,20,50,.26),transparent 46%),linear-gradient(0deg,rgba(10,20,50,.24),transparent 38%)}
 .veil.cloudy{background:rgba(52,62,84,.26)} .veil.wet{background:rgba(34,46,70,.38)}
@@ -653,7 +681,7 @@ button.pill:active{transform:scale(.97)}
 </head>
 <body>
 
-<div class="sky" id="sky" aria-hidden="true"><div class="stars" id="stars"></div><div class="horizon"></div><div class="sunglow"></div></div>
+<div class="sky" id="sky" aria-hidden="true"><div class="stars" id="stars"></div><div class="horizon"></div><div class="sunglow"></div><div class="wxfx" id="wxfx"></div></div>
 <div class="veil" id="veil" aria-hidden="true"></div>
 <div id="app"></div>
 <div id="calsheet" hidden></div>
@@ -963,9 +991,12 @@ function paintSky(){const t=skyNow(),sun=S.skyMode==='dusk'&&S.previewMin==null?
   const el=sun.el,cl=(x,a,b)=>Math.max(a,Math.min(b,x));
   const sx=cl((sun.az-80)/200*100,-10,110),sy=cl(88-el/38*78,8,112);
   const sc=el>=20?[255,248,228]:el>=0?mixc([255,178,104],[255,248,228],el/20):[255,132,92];
-  const ga=el>=-1?cl(.62-Math.max(0,el-25)/60,.35,.62):cl(.62*(1+(el+1)/7),0,.62);
+  let ga=el>=-1?cl(.62-Math.max(0,el-25)/60,.35,.62):cl(.62*(1+(el+1)/7),0,.62);
   const hzA=cl(1-Math.abs(el-1)/10,0,1)*.55,hzc=sun.rising?[255,170,140]:[255,140,90];
-  const starA=cl((-5-el)/9,0,.9);
+  // clouds hide the sun's glow and the stars, so a rainy morning doesn't show a bright sun
+  const kind=WX&&WX.current?WMO(WX.current.weather_code)[1]:'sun',cover=kind==='sun'?1:kind==='partly'?.6:.12;
+  ga*=cover;
+  const starA=cl((-5-el)/9,0,.9)*(cover>.5?1:.25);
   let B=[rgba(light[2],.5),rgba(light[1],.4),rgba(light[2],.42)];
   if(!sun.rising&&el>-8&&el<20){const w=el>=2&&el<=10?1:el<2?cl((el+8)/10,0,1):cl((20-el)/10,0,1);
     const d1=mixc(light[2],[255,170,110],w),d2=mixc(light[1],[200,110,200],w),d3=mixc(light[2],[255,140,90],w);B=[rgba(d1,.5),rgba(d2,(.4+.05*w).toFixed(2)),rgba(d3,(.42+.03*w).toFixed(2))]}
@@ -979,7 +1010,34 @@ function paintSky(){const t=skyNow(),sun=S.skyMode==='dusk'&&S.previewMin==null?
   if(WX&&WX.current){const k=WMO(WX.current.weather_code)[1];if(k==='rain'||k==='storm'||k==='snow')vc+=' wet';else if(k==='cloud'||k==='fog')vc+=' cloudy'}
   if(veil.className!==vc)veil.className=vc;
   document.documentElement.classList.toggle('lite',S.lite);document.documentElement.classList.toggle('night',el<-6);
+  paintWx();
 }
+
+/* ================= the weather, moving in the sky =================
+   Only transform and opacity animate (cheap on the tablet's graphics chip), a few dozen elements at most, rebuilt only
+   when the weather changes, and paused while the screen is dimmed or showing the night clock. Settings can turn it off. */
+let wxKey='';
+function wxMood(){if(!WX||!WX.current)return null;const c=WX.current;
+  return{k:WMO(c.weather_code)[1],wind:(c.wind_speed_10m||0)>=18,cold:c.temperature_2m<=32,hot:c.temperature_2m>=85,day:c.is_day!==0,heavy:[65,67,82,86,95,96,99].includes(c.weather_code)}}
+function paintWx(){const el=document.getElementById('wxfx');if(!el)return;const m=S.wxFx&&S.previewMin==null?wxMood():null;
+  const key=m?[m.k,m.wind,m.cold,m.hot,m.day,m.heavy,S.lite].join():'off';if(key===wxKey)return;wxKey=key;
+  if(!m){el.innerHTML='';el.className='wxfx';return}
+  const R=(a,b)=>a+Math.random()*(b-a),f=(v,d)=>v.toFixed(d||0),n=x=>Math.round(x*(S.lite?.5:1));let h='';
+  const clouds=(cnt,op,dur)=>{for(let i=0;i<cnt;i++)h+='<i class="cl" style="top:'+f(R(-10,48),1)+'%;width:'+f(R(45,85))+'vw;height:'+f(R(22,40))+'vh;opacity:'+op+';animation-duration:'+f(R(dur*.7,dur*1.3))+'s;animation-delay:-'+f(R(0,dur))+'s"></i>'};
+  const rain=(cnt,hv)=>{h+='<div class="rain">';for(let i=0;i<cnt;i++)h+='<i class="dr" style="left:'+f(R(0,100),1)+'%;height:'+f(R(8,16))+'vh;animation-duration:'+f(R(hv?.42:.6,hv?.68:1),2)+'s;animation-delay:-'+f(R(0,1),2)+'s;opacity:'+f(R(.55,.95),2)+'"></i>';h+='</div>'};
+  const cdur=m.wind?32:130,wet=m.k==='rain'||m.k==='storm'||m.k==='snow';
+  if(m.k==='sun'&&m.day)h+='<i class="rays"></i>';
+  if(m.k==='partly')clouds(3,.6,cdur);
+  if(m.k==='cloud')clouds(6,.85,cdur);
+  if(m.k==='fog')h+='<i class="fg"></i><i class="fg b"></i>';
+  if(wet)clouds(4,.75,cdur);
+  if(m.k==='rain'||m.k==='storm')rain(n(m.heavy||m.k==='storm'?80:56),m.heavy||m.k==='storm');
+  if(m.k==='snow')for(let i=0;i<n(60);i++){const s=R(4,10);h+='<i class="sn" style="left:'+f(R(0,100),1)+'%;width:'+f(s,1)+'px;height:'+f(s,1)+'px;--sw:'+f(R(-6,6),1)+'vw;animation-duration:'+f(R(8,16),1)+'s;animation-delay:-'+f(R(0,16),1)+'s;opacity:'+f(R(.5,.95),2)+'"></i>'}
+  if(m.k==='storm')h+='<i class="flash"></i>';
+  if(m.wind&&!wet)for(let i=0;i<n(10);i++)h+='<i class="wd" style="top:'+f(R(5,90),1)+'%;width:'+f(R(12,26))+'vw;animation-duration:'+f(R(1.6,3.2),2)+'s;animation-delay:-'+f(R(0,3),2)+'s"></i>';
+  if(m.cold)h+='<i class="frost"></i>';
+  if(m.hot)h+='<i class="haze"></i>';
+  el.className='wxfx'+(m.wind?' windy':'')+(m.day?'':' dark');el.innerHTML=h}
 
 /* ================= tiles ================= */
 const ck=(on,act,attrs,label,sub)=>'<button class="ck'+(on?' on':'')+'" role="checkbox" aria-checked="'+(!!on)+'" data-act="'+act+'" '+attrs+'><span class="box" aria-hidden="true">'+CHECK+'</span><span class="lbl">'+esc(label)+(sub?'<small>'+esc(sub)+'</small>':'')+'</span></button>';
@@ -1336,7 +1394,8 @@ function timerView(){const d=S.tdraft||{};
 function keepTyped(){const n=document.getElementById('tname-in');if(n&&S.tdraft)S.tdraft.name=n.value}
 
 /* ---- what's new: shown once per release, until tapped or for a day ---- */
-const NEWS={id:'2026-11-22-board',items:[
+const NEWS={id:'2026-11-22-weather',items:[
+  ['The sky shows the weather.','Rain falls, snow drifts, clouds roll by, the sun’s rays turn, wind gusts, frost creeps in when it’s freezing and heat shimmers when it’s hot. Settings › Weather in the sky › Still turns it off.'],
   ['Try the Home board.','Settings › Home layout › Home board. The calendar and your lists share the screen, with the day in one sentence, weather and timers along the top.'],
   ['Clearing lists.','Tap × on any item, or swipe it left, to delete it (Undo brings it back). Clear removes everything ticked, and ticked items clear themselves after a day.'],
   ['To-dos come from email now.','The built-in checklists are cleared. Email the hub (its address is in Lists and Settings) a line like “To do: call the plumber” and it appears on the home screen, ready to tick off.'],
@@ -1428,6 +1487,7 @@ async function saveHouse(){const v=id=>{const n=document.getElementById(id);retu
 function settingsView(){return '<section class="card"><div class="setrow"><div><h3>Household</h3><div class="note">Your location, weekly schedule and checklists. Saved only on this tablet.</div></div><button class="pillbtn" data-act="open" data-s="house">Edit household</button></div></section>'+peopleSettings()+'<section class="card">'+
   '<div class="setrow"><div><h3>Home layout</h3><div class="note">Home board splits the screen between the calendar and your lists, with the time, the day in a sentence, weather and timers along the top.</div></div><div class="seg"><button data-act="layout" data-v="classic" aria-pressed="'+(S.layout!=='board')+'">Classic</button><button data-act="layout" data-v="board" aria-pressed="'+(S.layout==='board')+'">Home board</button></div></div>'+'<div class="setrow"><div><h3>Glass effect</h3><div class="note">Light uses frosted panels without live blur. Faster on older tablets.</div></div><div class="seg"><button data-act="lite" data-v="0" aria-pressed="'+(!S.lite)+'">Full</button><button data-act="lite" data-v="1" aria-pressed="'+S.lite+'">Light</button></div></div>'+
   '<div class="setrow"><div><h3>Daytime rest</h3><div class="note">After 20 minutes with no one touching it, the screen dims to protect it from burn-in. Tap anywhere to wake it.</div></div><div class="seg"><button data-act="dimset" data-v="0" aria-pressed="'+(!S.dimOn)+'">Off</button><button data-act="dimset" data-v="1" aria-pressed="'+S.dimOn+'">On</button></div></div>'+
+  '<div class="setrow"><div><h3>Weather in the sky</h3><div class="note">Rain, snow, clouds, sun, wind, frost and heat move gently behind the hub. Still turns the motion off.</div></div><div class="seg"><button data-act="wxfx" data-v="1" aria-pressed="'+S.wxFx+'">Moving</button><button data-act="wxfx" data-v="0" aria-pressed="'+(!S.wxFx)+'">Still</button></div></div>'+
   '<div class="setrow"><div><h3>Sky</h3><div class="note">Follow the sun moves the light and color with the real sky over '+(LOC?LOC.label:'not set')+'. Always dusk keeps the warm evening look all day.</div></div><div class="seg"><button data-act="skymode" data-v="live" aria-pressed="'+(S.skyMode==='live')+'">Follow the sun</button><button data-act="skymode" data-v="dusk" aria-pressed="'+(S.skyMode==='dusk')+'">Always dusk</button></div></div>'+
   '<div class="setrow" style="flex-direction:column;align-items:stretch"><div><h3>Preview the day</h3><div class="note">Drag to watch the sky from dawn to night. <b id="prevlbl">'+(S.previewMin==null?'Showing now':fmtTime(skyNow().getTime()))+'</b></div></div><input type="range" id="skyprev" min="0" max="1439" step="5" value="'+(S.previewMin==null?new Date().getHours()*60+new Date().getMinutes():S.previewMin)+'" aria-label="Preview time of day" style="width:100%;accent-color:#fff"><div><button class="pillbtn sm" data-act="prevnow">Back to now</button></div></div>'+
   '<div class="setrow"><div><h3>Night clock</h3><div class="note">After 9 pm, a few idle minutes dim the hub to a big clock and tomorrow’s preview. Tap to wake.</div></div><div class="seg"><button data-act="amb" data-v="0" aria-pressed="'+(!S.ambOn)+'">Off</button><button data-act="amb" data-v="1" aria-pressed="'+S.ambOn+'">On</button></div></div>'+
@@ -1494,6 +1554,7 @@ function render(){
   const a=document.activeElement,id=a&&a.id,txt=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA');let val,ss,se;
   if(txt){val=a.value;try{ss=a.selectionStart;se=a.selectionEnd}catch(e){}}
   const sb=document.getElementById('sheetbody'),sbTop=sb?sb.scrollTop:0,prevSheet=S._lastSheet;
+  document.documentElement.classList.toggle('fx-paused',!!(S.amb||S.dim)); // no moving weather under a dimmed or sleeping screen
   app.innerHTML=(S.layout==='board'?boardView():'<main class="home">'+glanceView()+'<div class="act">'+nowPane()+'<div class="cards">'+mealCard()+nextCard()+'</div></div></main>')+dock()+sheetView()+
     (S.err?'<div class="status glass" role="status">'+esc(S.err)+'</div>':S.toast?'<button class="status glass" data-act="open" data-s="lists" style="border:0;color:inherit;font:inherit;font-size:14px;cursor:pointer;min-height:44px">'+esc(S.toast)+' ›</button>':battNote())+(S.undo?'<div class="status glass undo" role="status">'+(S.undo.verb||'Checked')+' “'+esc(S.undo.label.slice(0,48))+'”<button data-act="undo">Undo</button></div>':S.news&&!S.sheet?'<button class="status glass news" data-act="news">What’s new ›</button>':'')+(S.amb?ambientView():'')+(S.dim&&!S.amb?'<div class="dimmer" aria-hidden="true"></div>':'')+(S.ring?'<div class="alarm" data-act="ringoff" role="alertdialog" aria-label="Timer done"><b>Time’s up</b><span>'+esc(S.ring.label)+'</span><em>Tap anywhere to stop</em></div>':'');
   calSheet();
@@ -1566,6 +1627,7 @@ function onAct(b){const a=b.dataset.act,ds=b.dataset;
   if(a==='person'){S.person=ds.id;openSheet('person');return}
   if(a==='radarview'){S.radarView=ds.v;render();return}
   if(a==='layout'){S.layout=ds.v;lsSet('hub-layout',ds.v);render();return}
+  if(a==='wxfx'){S.wxFx=ds.v==='1';lsSet('hub-wxfx',ds.v);wxKey='';paintWx();render();return}
   if(a==='news'){S.news=false;lsSet('hub-news-seen',NEWS.id);openSheet('news');return}
   if(a==='dimset'){S.dimOn=ds.v==='1';lsSet('hub-dim',ds.v);render();return}
   if(a==='scan'){openScan();return}
@@ -1617,7 +1679,7 @@ function swEnd(){if(!sw)return;const s=sw;sw=null;if(!s.on)return;swipedAt=perfo
   else{s.r.style.transform='';s.r.style.opacity=''}}
 document.addEventListener('pointerup',swEnd);document.addEventListener('pointercancel',swEnd);
 document.addEventListener('click',e=>{if(swallow){swallow=false;e.preventDefault();e.stopPropagation();return}
-  if(performance.now()-swipedAt<450){e.preventDefault();e.stopPropagation();return}const b=e.target.closest('[data-act]');if(b)onAct(b)});
+  if(performance.now()-swipedAt<300){e.preventDefault();e.stopPropagation();return}const b=e.target.closest('[data-act]');if(b)onAct(b)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.sheet){closeSheet();return}
   if((e.key==='Enter'||e.key===' ')&&e.target.matches('[role="button"][data-act]')){e.preventDefault();onAct(e.target)}});
 document.addEventListener('submit',e=>{const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();
@@ -1652,6 +1714,7 @@ S._ri=routineIdx(new Date());
 // home layout: Classic stays the default until Dan chooses; ?look=cal previews the calendar-first layout
 S.layout=/[?&]look=board\b/.test(location.search)?'board':lsGet('hub-layout','classic');
 if(S.layout==='cal')S.layout='board'; // the earlier "Calendar first" preview became the Home board
+S.wxFx=lsGet('hub-wxfx','1')==='1';
 // the "What's new" note stays until it's tapped, or for a day after it first appears
 (function(){if(lsGet('hub-news-seen','')===NEWS.id)return;const f=lsGet('hub-news-first','').split(':');
   if(f[0]!==NEWS.id){lsSet('hub-news-first',NEWS.id+':'+Date.now());S.news=true}else S.news=Date.now()-(+f[1]||0)<864e5})();
