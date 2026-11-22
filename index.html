@@ -668,6 +668,12 @@ button.pill:active{transform:scale(.97)}
 /* tasks: To do and Groceries side by side when both have items */
 .tsk{flex:0 1 auto;max-height:40%;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);gap:0 22px;padding:8px 16px 6px}
 .tsk.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.tsk.three{grid-template-columns:repeat(3,minmax(0,1fr));gap:0 18px}
+.tsk.three .bh h2{font-size:21px;gap:7px;min-width:0;overflow:hidden}
+.tsk.three .bh h2 em{font-size:15px}
+.tsk.three .blink{padding:0 10px;font-size:15px}
+.tsk.three .blink.add{font-size:0;width:48px;padding:0}
+.tsk.three .blink.add::before{content:"+";font-size:24px;font-weight:500}
 .tsk .bh{min-height:44px}
 .tsk .bh h2{font-size:24px}
 .tsk .brow .ck{min-height:46px;font-size:17px;padding:4px}
@@ -1308,11 +1314,11 @@ function weekPane(){let cells='';
 const brow=(L,x)=>'<div class="brow" data-swipe data-l="'+L+'" data-id="'+x.id+'">'+ck(x.done,'ltog','data-l="'+L+'" data-id="'+x.id+'"',x.t,x.from?'From '+x.from:'')+'<button class="bx" data-act="ldel" data-l="'+L+'" data-id="'+x.id+'" aria-label="Delete '+esc(x.t)+'">×</button></div>';
 function listSection(k,title){const all=listsData()[k]||[],open=all.filter(x=>!x.done),dn=all.length-open.length;
   return '<section class="bsec"><div class="bh"><h2>'+title+'<em>'+open.length+'</em></h2><div class="bact">'+(dn?'<button class="blink" data-act="lclear" data-l="'+k+'">Clear '+dn+' done</button>':'')+
-    '<button class="blink add" data-act="addto" data-l="'+k+'">+ Add</button></div></div><div class="brows" data-fit="'+k+'">'+open.map(x=>brow(k,x)).join('')+'</div></section>'}
-// the tasks section exists only while there is something to do or buy
+    '<button class="blink add" data-act="addto" data-l="'+k+'" aria-label="Add to '+title+'">+ Add</button></div></div><div class="brows" data-fit="'+k+'">'+open.map(x=>brow(k,x)).join('')+'</div></section>'}
+// the tasks section exists only while there is something to do, buy or note (emailed Notes: lines land in forManager)
 const openIn=k=>(listsData()[k]||[]).filter(x=>!x.done).length;
-function tasksPane(){const t=openIn('todo'),b=openIn('buy');if(!t&&!b)return '';
-  return '<section class="pane tsk'+(t&&b?' two':'')+'" aria-label="Tasks">'+(t?listSection('todo','To do'):'')+(b?listSection('buy','Groceries'):'')+'</section>'}
+function tasksPane(){const secs=[['todo','To do'],['buy','Groceries'],['forManager','Notes']].filter(x=>openIn(x[0]));if(!secs.length)return '';
+  return '<section class="pane tsk'+(secs.length>1?' two':'')+(secs.length>2?' three':'')+'" aria-label="Tasks">'+secs.map(x=>listSection(x[0],x[1])).join('')+'</section>'}
 function boardView(){return '<main class="home wkhome">'+glanceView()+'<div class="act">'+weekPane()+tasksPane()+'</div></main>'}
 // list rows that don't fit hide behind "+N more", which opens Lists
 // To do is sized by its own rows (up to 60% of the pane) and is fitted first, with its height frozen, so hiding its
@@ -1556,7 +1562,8 @@ function timerView(){const d=S.tdraft||{};
 function keepTyped(){const n=document.getElementById('tname-in');if(n&&S.tdraft)S.tdraft.name=n.value}
 
 /* ---- what's new: shown once per release, until tapped or for a day ---- */
-const NEWS={id:'2026-11-22-wx',items:[
+const NEWS={id:'2026-11-22-wx2',items:[
+  ['Emailed notes on the home screen.','Notes you email the hub now show beside To do and Groceries under the week, and disappear once they are ticked off.'],
   ['A new weather window.','A little sky shows the sun or moon where it really is, with clouds, rain or snow to match outside. Below it, the next 12 hours as a temperature curve and five days of lows and highs, with a gold dot for right now. Tap the sky for the radar.'],
   ['The week at a glance.','Time, weather, the forecast and the clothing tip stay on the left. The right shows the whole week in day boxes, plus next week. Tap any event for its details.'],
   ['Tasks appear when there are some.','Emailed to-dos and groceries show under the week, and the section disappears once they are done.'],
