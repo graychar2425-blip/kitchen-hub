@@ -1004,7 +1004,8 @@ function fitAgenda(){const A=document.getElementById('agenda2');if(!A)return;con
   rows.forEach((r,i)=>{if(r.classList.contains('ag-day')&&!r.hidden&&(!rows[i+1]||rows[i+1].hidden))r.hidden=true});
   if(hid)A.insertAdjacentHTML('beforeend','<span class="ag-more">'+hid+' more this week ›</span>')}
 function inboxCard(){const L=listsData(),open=[];LISTS.forEach(x=>(L[x.k]||[]).forEach(i=>{if(!i.done)open.push(Object.assign({l:x.k},i))}));
-  const mail=open.filter(i=>i.from),recent=mail.slice(-3).reverse(),who=[...new Set(mail.slice(-6).map(i=>i.from))].slice(0,2);
+  // when the big pane is the To do list, this card doesn't repeat it
+  const mail=open.filter(i=>i.from&&!(i.l==='todo'&&noRoutine())),recent=mail.slice(-3).reverse(),who=[...new Set(mail.slice(-6).map(i=>i.from))].slice(0,2);
   const n=k=>open.filter(i=>i.l===k).length,summary=[n('buy')?n('buy')+' to buy':'',n('todo')?n('todo')+' to do':''].filter(Boolean).join(', ');
   const addr=INBOX.status&&INBOX.status.address;
   if(recent.length)return '<button class="pane hcard" data-act="open" data-s="lists"><span>From email</span><b>'+esc(recent.map((i,k)=>k?i.t.charAt(0).toLowerCase()+i.t.slice(1):i.t).join(', '))+'</b><small>'+esc('from '+who.join(' and '))+'</small></button>';
@@ -1042,7 +1043,7 @@ function timerTick(){const lv=leaveInfo(),lk=lv?(lv.left>0?Math.ceil(lv.left/600
 const CHECK_BIG='<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="var(--done)" opacity=".22"/><circle cx="32" cy="32" r="22" fill="var(--done)"/><path d="M21 33l7.5 7.5L44 25" fill="none" stroke="#0E2A1C" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function fixItem(it,d){return it[0]==='e6'&&dowOf(d)===(P.sched.trash+6)%7?[it[0],'Trash check: garbage goes out tomorrow']:it}
 // After 7:30 pm with the evening list done, or after 9 pm, the pane gets tomorrow ready instead.
-function tomorrowMode(){const t=new Date(),d=S.today,done=dayData(d).done||{},ev=ROUTINE[2].items;return lookAhead(t)&&!dayData(d).sideways&&(t.getHours()>=21||cnt(ev,done)===ev.length)}
+function tomorrowMode(){const t=new Date(),d=S.today,done=dayData(d).done||{},ev=ROUTINE[2].items;if(noRoutine())return t.getHours()>=21;return lookAhead(t)&&!dayData(d).sideways&&(t.getHours()>=21||cnt(ev,done)===ev.length)}
 function tomorrowPane(){const tm=addDays(S.today,1),D=DAYS[dowOf(tm)],pl=((weekData(mondayOf(tm)).plan||{})[D.k])||{},d=S.today,done=dayData(d).done||{},rows=[];
   // before bed: whatever is still open from the evening, plus tonight's household jobs you can tick here
   const tonight=householdEvents(d,'Today').filter(x=>x.tm==='Tonight'),binsTonight=tonight.some(x=>x.cat==='bins');
@@ -1064,7 +1065,18 @@ function tomorrowPane(){const tm=addDays(S.today,1),D=DAYS[dowOf(tm)],pl=((weekD
     (bed?'<div class="list bed">'+bed+'</div>':'')+
     '<div class="tmrh">Tomorrow, '+esc(D.name)+'<span>'+esc(D.focus.toLowerCase())+'</span></div><div class="tmr">'+rows.map(r=>'<div class="row"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('')+'</div>'+
     '<div class="jcs">'+chips+'<button class="jc" data-act="openday" data-d="'+d+'">Tonight’s full list ›</button></div></section>'}
-function nowPane(){if(tomorrowMode())return tomorrowPane();const t=new Date(),d=S.today,day=dayData(d),done=day.done||{},att=id=>'data-d="'+d+'" data-id="'+id+'"';
+// With no daily checklists set up, the big pane is the household's To do list, which fills from email.
+const noRoutine=()=>ROUTINE.every(r=>!r.items.length);
+function todoPane(){const d=S.today,plan=(weekData(mondayOf(d)).plan||{})[DAYS[dowOf(d)].k]||{},L=listsData(),all=L.todo||[],open=all.filter(x=>!x.done),n=all.length-open.length;
+  const addr=INBOX.status&&INBOX.status.address,buy=(L.buy||[]).filter(x=>!x.done).length;
+  const list=open.length?open.map(x=>ck(false,'ltog','data-l="todo" data-id="'+x.id+'"',x.t,x.from?'From '+x.from:'')).join('')
+    :'<div class="alldone">'+CHECK_BIG+'<b>Nothing to do</b><span class="muted">'+esc(addr?'Email '+addr+' a line like “To do: call the plumber” and it shows here.':'Add to-dos in Lists.')+'</span></div>';
+  const chips=(plan.must?'<button class="jc must" data-act="qedit" data-k="must" data-d="'+d+'">'+esc(plan.must)+'</button>':'<button class="jc add" data-act="qedit" data-k="must" data-d="'+d+'">+ Must-do</button>')+
+    jobGroups(d).map(x=>'<button class="jc'+(x.n===x.of?' full':'')+'" data-act="opengroup" data-g="'+x.key+'" data-d="'+d+'"><span class="d" style="background:'+CATC[x.cat]+'"></span>'+esc(x.t)+' <em>'+(x.n===x.of?'done':x.n+' of '+x.of)+'</em></button>').join('')+
+    '<button class="jc" data-act="open" data-s="lists">'+(buy?buy+' to buy':'Lists')+' ›</button>';
+  return '<section class="pane now" aria-label="To do"><header class="nowh"><div class="ttl"><h1>To do</h1><span class="sub">'+(open.length?open.length+' open':'all clear')+'</span></div>'+(all.length?'<span class="prog">'+n+' of '+all.length+'</span>':'')+'</header>'+
+    '<div class="nbar"><i style="width:'+(all.length?Math.round(100*n/all.length):0)+'%"></i></div>'+pillsRow()+'<div class="list" data-more="lists">'+list+'</div><div class="jcs" role="group" aria-label="Also today">'+chips+'</div></section>'}
+function nowPane(){if(tomorrowMode())return tomorrowPane();if(noRoutine()&&!dayData(S.today).sideways)return todoPane();const t=new Date(),d=S.today,day=dayData(d),done=day.done||{},att=id=>'data-d="'+d+'" data-id="'+id+'"';
   const plan=(weekData(mondayOf(d)).plan||{})[DAYS[dowOf(d)].k]||{};
   let head,list,n,of;
   if(day.sideways){n=cnt(SIDEWAYS,done);of=SIDEWAYS.length;head='<div class="ttl"><h1>Just the essentials</h1><span class="sub">everything else can move a day</span></div>';
@@ -1087,11 +1099,11 @@ function householdEvents(day,label){const out=[],w=dowOf(day),mon=mondayOf(day),
   const sc=P.sched,prev=d=>(d+6)%7,curb=!!anc('garbage')[CURB];
   if(w===prev(sc.trash)&&!curb)out.push({cat:'bins',tm:'Tonight',title:'Bins to the curb'});
   if(w===sc.trash){if(!curb)out.push({cat:'bins',tm:'Morning',title:'Bins out, if they didn’t go last night'});else out.push({cat:'bins',tm:'Today',title:'Trash day · bring bins back in'})}
-  if(sc.cleaner>=0&&w===prev(sc.cleaner))out.push({cat:'clean',tm:'Tonight',title:P.names.cleaner+' prep'});
+  if(sc.cleaner>=0&&w===prev(sc.cleaner)&&lines(P.cleanerPrep,'c').length)out.push({cat:'clean',tm:'Tonight',title:P.names.cleaner+' prep'});
   if(sc.cleaner>=0&&w===sc.cleaner)out.push({cat:'clean',tm:'Today',title:P.names.cleaner,visit:true});
   if(visits.includes(w)){const vk='v'+(visits.slice().sort().indexOf(w)+1),L=(wk.visitLog||{})[vk]||{};out.push({cat:'hm',tm:label==='Tomorrow'?'Tomorrow':'Today',title:P.names.helper+' visit',visit:true,sub:L.project?'Project: '+L.project:'5–6 hours'})}
   const pk=prepKey(day);if(pk){const pd=(C['prep/'+pk]||{}).done||{};if(cnt(PREP,pd)<PREP.length)out.push({cat:'prep',tm:label==='Tomorrow'?'Tomorrow':'Today',title:'Meal prep session'+(pk.endsWith('s1')?' 1':' 2')})}
-  if(w===P.sched.clothes)out.push({cat:'clothes',tm:'Today',title:'Kids’ clothing check'});
+  if(w===P.sched.clothes&&lines(P.clothes,'k').length)out.push({cat:'clothes',tm:'Today',title:'Kids’ clothing check'});
   return out}
 // Arrivals and appointments, as opposed to jobs (bins, prep, clothing checks), which live in Right now.
 const isVisit=x=>!!x.visit;
@@ -1117,7 +1129,7 @@ function weekView(){let h='';
     const rows=CAL.events.filter(e=>e.day===d).sort(byStart).map(e=>'<div class="ev">'+(personFor(e.title)?'<span class="dot pdot" style="'+pvars(personFor(e.title))+'"></span>':dotc(e.cat))+'<span class="tm">'+(e.allDay?'All day':fmtTime(e.startMs))+'</span><span class="tt">'+esc(e.title)+(e.location?'<small>'+esc(e.location)+'</small>':'')+'</span></div>')
       .concat(householdEvents(d,i===0?'Today':i===1?'Tomorrow':D.name).map(x=>'<div class="ev">'+dotc(x.cat)+'<span class="tm">'+esc(x.tm==='Today'||x.tm==='Tomorrow'?'':x.tm||'')+'</span><span class="tt">'+esc(x.title)+(x.sub?'<small>'+esc(x.sub)+'</small>':'')+'</span></div>'))
       .concat(pl.dinner?['<div class="ev">'+dotc('prep')+'<span class="tm">Dinner</span><span class="tt">'+esc(pl.dinner)+'</span></div>']:[]);
-    h+='<section class="wkday"><button class="wkh" data-act="openday" data-d="'+d+'"><b>'+lab+'</b><span>'+parse(d).toLocaleDateString(undefined,{month:'short',day:'numeric'})+', '+esc(D.focus.toLowerCase())+'</span><em>'+st.n+' of '+st.total+' done ›</em></button><div class="agenda">'+(rows.length?rows.join(''):'<div class="ev none">Nothing scheduled</div>')+'</div></section>'}
+    h+='<section class="wkday"><button class="wkh" data-act="openday" data-d="'+d+'"><b>'+lab+'</b><span>'+parse(d).toLocaleDateString(undefined,{month:'short',day:'numeric'})+', '+esc(D.focus.toLowerCase())+'</span>'+(st.total?'<em>'+st.n+' of '+st.total+' done ›</em>':'')+'</button><div class="agenda">'+(rows.length?rows.join(''):'<div class="ev none">Nothing scheduled</div>')+'</div></section>'}
   const note=INART||FEED?'':'<p class="note">Appointments show here once your calendar is connected in Settings. Household days always show.</p>';
   const embed=!INART&&!FEED&&CAL_IDS.length?'<div><button class="pillbtn" data-act="open" data-s="cal">Open Google Calendar</button></div>':'';
   return note+embed+h}
@@ -1127,7 +1139,7 @@ function jobGroups(d){const w=dowOf(d),D=DAYS[w],mon=mondayOf(d),wk=weekData(mon
   ANCHORS.forEach(a=>{if(a.days.includes(w))g.push({key:'anc:'+a.k,t:a.title,n:cnt(a.items,(weekData(ancWeek(a,d)).anchors||{})[a.k]),of:a.items.length,cat:a.cat})});
   const visits=(wk.visits||[]).slice().sort();if(visits.includes(w)){const vk='v'+(visits.indexOf(w)+1);g.push({key:'hm',t:P.names.helper+' visit',n:cnt(MGR,((wk.visitLog||{})[vk]||{}).done),of:MGR.length,cat:'hm'})}
   const pk=prepKey(d);if(pk)g.push({key:'prep',t:'Meal prep',n:cnt(PREP,(C['prep/'+pk]||{}).done),of:PREP.length,cat:'prep'});
-  g.push({key:'laundry',t:'Laundry loop',n:cnt(LAUNDRY,done),of:LAUNDRY.length,cat:'laundry'});return g}
+  g.push({key:'laundry',t:'Laundry loop',n:cnt(LAUNDRY,done),of:LAUNDRY.length,cat:'laundry'});return g.filter(x=>x.of>0)}
 const IC={
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6.5 8 6.5V20H4z"/></svg>',
   meal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v8M10 3v8M7 7h3M8.5 11v10M16.5 3c-2 1.5-2.5 4-2.5 7h2.5v11"/></svg>',
@@ -1152,14 +1164,17 @@ function cardsFor(d){const w=dowOf(d),D=DAYS[w],mon=mondayOf(d),wk=weekData(mon)
   if(visits.includes(w)){const vk='v'+(visits.indexOf(w)+1),L=(wk.visitLog||{})[vk]||{};out.push({key:'hm',html:card(P.names.helper+' visit',L.project?'Project: '+L.project:'5–6 hours. Set a project in House manager.',MGR,L.done,'tmgr',id=>'data-m="'+mon+'" data-v="'+vk+'" data-id="'+id+'"','c-hm')})}
   const pk=prepKey(d);if(pk){const s1=pk.endsWith('s1');out.push({key:'prep',html:card('Meal prep · session '+(s1?'1':'2'),(s1?P.sched.prep1:P.sched.prep2).map(x=>DN[x]).join(' or ')+'. Twice a week is enough.',PREP,(C['prep/'+pk]||{}).done,'tprep',id=>'data-k="'+pk+'" data-id="'+id+'"','c-prep')})}
   out.push({key:'laundry',html:card('Laundry loop','No pile-ups',LAUNDRY,done,'tday',att)});
-  return out}
+  // a group whose checklist is empty has nothing to show
+  return out.filter(c=>!/<span class="count[^"]*">0\/0<\/span>/.test(c.html))}
 function dayView(){const d=S.sel,w=dowOf(d),D=DAYS[w],mon=mondayOf(d),wk=weekData(mon),day=dayData(d),done=day.done||{},plan=(wk.plan||{})[D.k]||{},att=id=>'data-d="'+d+'" data-id="'+id+'"';
   const q=(k,lab)=>'<button class="qf" data-act="qedit" data-k="'+k+'" data-d="'+d+'"><span>'+lab+'</span>'+(plan[k]?'<b>'+esc(plan[k])+'</b>':'<b class="empty">+ Add</b>')+'</button>';
   let h='<div class="strip">'+q('dinner','Dinner')+q('lunch','Kids’ lunch')+q('must','Must happen')+'</div>';
   if(day.sideways)return h+'<div class="big">'+card('Just these three','Everything else can move a day.',SIDEWAYS,done,'tday',att,'c-bins')+'</div><div><button class="pillbtn" data-act="sidesel">Back to the full list</button></div>';
-  h+='<div class="grid">'+ROUTINE.map(r=>card(r.title,r.sub,r.items.map(it=>fixItem(it,d)),done,'tday',att)).join('')+'</div>';
-  h+='<div class="grid">'+cardsFor(d).map(c=>c.html).join('')+'</div>';
-  h+='<div><button class="pillbtn warn" data-act="sidesel">Day going sideways? Show only the essentials</button></div>';
+  const rc=ROUTINE.filter(r=>r.items.length),oc=cardsFor(d);
+  if(rc.length)h+='<div class="grid">'+rc.map(r=>card(r.title,r.sub,r.items.map(it=>fixItem(it,d)),done,'tday',att)).join('')+'</div>';
+  if(oc.length)h+='<div class="grid">'+oc.map(c=>c.html).join('')+'</div>';
+  if(!rc.length&&!oc.length){const addr=INBOX.status&&INBOX.status.address;h+='<p class="empty">No checklists for this day. To-dos come in by email'+(addr?' to <b>'+esc(addr)+'</b>':'')+' and show on the home screen. Checklists can be added back in Settings › Household.</p>'}
+  if(SIDEWAYS.length)h+='<div><button class="pillbtn warn" data-act="sidesel">Day going sideways? Show only the essentials</button></div>';
   const rl=lines(P.rules,'r');if(rl.length)h+='<div class="rules">'+rl.map(r=>'<p>'+(r[2]?'<b>'+esc(r[1])+'</b> '+esc(r[2]):esc(r[1]))+'</p>').join('')+'</div>';
   return h}
 function groupView(){const cs=cardsFor(S.sel).filter(c=>c.key===S.group);
@@ -1217,13 +1232,12 @@ function timerView(){const d=S.tdraft||{};
 function keepTyped(){const n=document.getElementById('tname-in');if(n&&S.tdraft)S.tdraft.name=n.value}
 
 /* ---- what's new: shown once per release, until tapped or for a day ---- */
-const NEWS={id:'2026-11-22-calfirst',items:[
+const NEWS={id:'2026-11-22-todo',items:[
+  ['To-dos come from email now.','The built-in checklists are cleared. Email the hub (its address is in Lists and Settings) a line like “To do: call the plumber” and it appears on the home screen, ready to tick off.'],
   ['Try the Calendar first layout.','Settings › Home layout. It puts the next few days of the calendar under the clock, counts down to the next event, tags new events, and shows what was emailed to the hub. Classic stays until you choose.'],
   ['A To do list.','In Lists, next to Need to buy. Once the hub’s email address is set up, emailed groceries, to-dos and meals land here by themselves.'],
   ['Live radar.','Tap Radar next to Hours and 5 days for the National Weather Service radar near you, moving through the last hour. Switch to Country for the whole US.'],
-  ['Name your timers.','Tap + next to the timer buttons to pick a name and any length, from 1 minute to 90. Tap a running timer’s name to rename it.'],
-  ['See one person’s day.','Tap a family member’s name on the home screen for just their jobs and appointments today.'],
-  ['No more stale information.','If the calendar or weather can’t update, the hub now says how old it is.']]};
+  ['Name your timers.','Tap + next to the timer buttons to pick a name and any length, from 1 minute to 90. Tap a running timer’s name to rename it.']]};
 function newsView(){return '<ol class="newsl">'+NEWS.items.map(x=>'<li><b>'+esc(x[0])+'</b> '+esc(x[1])+'</li>').join('')+'</ol><div class="qbtns"><button class="primary" data-act="close">Got it</button></div>'}
 function peopleSettings(){const ps=people(),own=settingsDoc().owners||{};
   let h='<section class="card"><div class="setrow" style="flex-direction:column;align-items:stretch"><div><h3>Family</h3><div class="note">Give each person a color. Their jobs show their avatar, and a calendar event takes their color when their name is in its title, like “Sam soccer”.</div></div>';
@@ -1365,7 +1379,7 @@ function fitLists(){document.querySelectorAll('.now .list').forEach(L=>{const ro
   rows.forEach(r=>r.hidden=false);const old=L.querySelector('.more');if(old)old.remove();if(L.scrollHeight<=L.clientHeight+1)return;
   const room=L.clientHeight-52;let shown=0;for(const r of rows){if(r.offsetTop-L.offsetTop+r.offsetHeight<=room)shown++;else break}
   rows.slice(Math.max(1,shown)).forEach(r=>r.hidden=true);const n=rows.length-Math.max(1,shown);
-  L.insertAdjacentHTML('beforeend','<button class="jc add more" data-act="openday" data-d="'+S.today+'">+'+n+' more ›</button>')})}
+  L.insertAdjacentHTML('beforeend','<button class="jc add more" '+(L.dataset.more?'data-act="open" data-s="'+L.dataset.more+'"':'data-act="openday" data-d="'+S.today+'"')+'>+'+n+' more ›</button>')})}
 addEventListener('resize',()=>requestAnimationFrame(()=>{fitLists();fitAgenda()}));
 // a chip row that is wider than the pane drops its last job chips into the "+N more" count
 function fitChips(){document.querySelectorAll('.now .jcs').forEach(R=>{let guard=6;while(R.scrollWidth>R.clientWidth+1&&guard--){const more=R.querySelector('.jc.more'),jobs=[...R.querySelectorAll('.jc[data-act="opengroup"]')];if(!jobs.length)break;
