@@ -568,6 +568,32 @@ button.pill:active{transform:scale(.97)}
 .radar img.us{width:900px}
 .radar .note{text-align:center}
 .sheet .seg{flex:none}
+/* ---------- calendar-first home layout (preview) ---------- */
+.cg{justify-content:flex-start}
+.cg .g-time{font-size:clamp(84px,10.5vw,122px)}
+.cg-wx{display:flex;align-items:center;gap:10px;border:0;background:none;color:var(--ink);font:inherit;padding:4px 0;margin-top:12px;cursor:pointer;text-align:left;min-height:48px;flex:none;text-shadow:inherit}
+.cg-wx svg{width:30px;height:30px;flex:none;filter:saturate(0) brightness(1.7)}
+.cg-wx b{font-family:"Outfit",var(--ui);font-weight:300;font-size:30px;line-height:1}
+.cg-wx span{font-size:17px;color:var(--muted)}
+.cg-wx i{font-style:normal;color:var(--faint);font-size:20px}
+.agenda2{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;border:0;background:none;color:inherit;font:inherit;text-align:left;padding:0;margin-top:16px;cursor:pointer;width:100%;text-shadow:inherit}
+.ag-day{font-family:"Outfit",var(--ui);font-weight:300;font-size:22px;line-height:1.2;margin:12px 0 2px;flex:none}
+.ag-day:first-child{margin-top:0}
+.ag-row{display:grid;grid-template-columns:8px 4.4em minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:5px 0;font-size:17px;flex:none}
+.ag-row .dot{align-self:start;margin-top:.55em;width:8px;height:8px}
+.ag-row .tm{color:var(--muted);font-variant-numeric:tabular-nums;font-size:15px;white-space:nowrap}
+.ag-row .tt{font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ag-row.next .tt{font-weight:600}
+.ag-row .tt small{display:block;font-size:14px;font-weight:600;color:#FFD58A}
+.ag-row.quiet .tt{color:var(--faint);font-weight:400}
+.ag-new{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:rgba(255,213,138,.18);color:#FFD58A;align-self:center}
+.ag-more{position:absolute;left:0;bottom:4px;font-size:14px;color:var(--muted)}
+.ag-empty{margin:4px 0 0;font-size:16px;color:var(--muted)}
+.ag-age{margin:8px 0 0;font-size:13px;color:var(--faint)}
+.agenda2 [hidden]{display:none}
+.cg .g-mid{margin-top:10px;flex:none}
+.wxsheet .g-wx{margin-top:0}
+.wxsheet .g-sky{margin-top:18px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -781,7 +807,7 @@ function feedNorm(list){const out=[];(Array.isArray(list)?list:[]).forEach(e=>{i
   else{const st=new Date(e.start),en=e.end?new Date(e.end):null;if(isNaN(st))return;out.push({title,allDay:false,day:iso(st),startMs:st.getTime(),endMs:en&&!isNaN(en)?en.getTime():null,location:loc,cat})}});return out}
 async function loadFeed(){if(!FEED)return;
   try{const r=await fetch(FEED+(FEED.includes('?')?'&':'?')+'days=8',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();
-    if(j.error){CAL.state='feedbad';CAL.err=j.error}else{CAL.events=feedNorm(j.events);CAL.state='ok';CAL.err=null;CAL.at=j.at=Date.now();
+    if(j.error){CAL.state='feedbad';CAL.err=j.error}else{CAL.events=feedNorm(j.events);CAL.state='ok';CAL.err=null;CAL.at=j.at=Date.now();markEvents();
       if(j.inboxStatus)INBOX.status=j.inboxStatus;if(Array.isArray(j.inbox))applyInbox(j.inbox);delete j.inbox;lsSet('hub-feed-cache',JSON.stringify(j))}}
   catch(e){const c=(()=>{try{return JSON.parse(lsGet('hub-feed-cache','null'))}catch(_){return null}})();
     if(c&&c.events&&CAL.state!=='ok'){CAL.events=feedNorm(c.events);CAL.state='ok';CAL.at=c.at||null}CAL.err='offline';if(CAL.state==='loading')CAL.state='error'}
@@ -935,6 +961,54 @@ function glanceView(){const ahead=lookAhead(),ND=DAYS[dowOf(addDays(S.today,1))]
     '<div class="g-time" id="time">'+clockHTML()+'</div>'+
     (tomorrowMode()?'':'<div class="g-focus">'+(ahead?'Tomorrow: '+esc(ND.focus.charAt(0).toLowerCase()+ND.focus.slice(1)):'Today: '+esc(D.focus.charAt(0).toLowerCase()+D.focus.slice(1)))+'</div>')+'</div>'+
     '<div class="gg">'+wxGlance()+(tomorrowMode()?'':tipView())+'</div><div class="g-mid" id="gmid">'+midView()+'</div><div class="g-sky" id="sun"'+(S.timers.length||leaveInfo()?' hidden':'')+'>'+sunBlock()+'</div></section>'}
+
+/* ---------- "Calendar first" home layout (preview, chosen in Settings): the clock, one weather line, and the next
+   three days of the calendar down the left; the next event carries the one accent and a live countdown ---------- */
+const EVSEEN=(()=>{try{return JSON.parse(lsGet('hub-ev-seen','null'))}catch(e){return null}})();
+let evSeen=EVSEEN||{};
+// remember when each event first appeared, so events added since (a forwarded invite) can say "New" for a day
+function markEvents(){const now=Date.now(),first=!EVSEEN&&!Object.keys(evSeen).length;let ch=false;
+  CAL.events.forEach(e=>{const k=e.title+'|'+(e.allDay?e.day:e.startMs);if(!(k in evSeen)){evSeen[k]=first?0:now;ch=true}});
+  if(ch){const ks=Object.keys(evSeen);if(ks.length>400)ks.slice(0,ks.length-400).forEach(k=>delete evSeen[k]);lsSet('hub-ev-seen',JSON.stringify(evSeen))}}
+const isNew=e=>{const t=evSeen[e.title+'|'+(e.allDay?e.day:e.startMs)];return !!t&&Date.now()-t<864e5};
+function untilText(ms){const m=Math.round((ms-Date.now())/60000);return m<=0?'now':'in '+fmtDur(m)}
+function agendaView(){if(!INART&&!FEED)return '<p class="ag-empty">Connect the calendar in Settings to see the next few days here.</p>';
+  if(CAL.state!=='ok')return '<p class="ag-empty">'+esc(CAL.state==='loading'?'Loading the calendar…':'Can’t reach the calendar right now. It tries again in 5 minutes.')+'</p>';
+  const now=Date.now();let h='',nextDone=false,rows=0;
+  for(let i=0;i<6;i++){const d=addDays(S.today,i),evs=CAL.events.filter(e=>e.day===d).concat(householdEvents(d,i===0?'Today':'Tomorrow').filter(isVisit).map(x=>({title:x.title,allDay:true,day:d,startMs:0,visit:1}))).sort(byStart)
+      .filter(e=>i>0||e.allDay||(e.endMs||e.startMs+3600000)>now);
+    if(!evs.length&&i>1)continue;
+    h+='<div class="ag-day">'+(i===0?'Today':i===1?'Tomorrow':DAYS[dowOf(d)].name)+'</div>';
+    if(!evs.length){h+='<div class="ag-row quiet"><span></span><span class="tm"></span><span class="tt">Nothing on the calendar</span></div>';continue}
+    evs.forEach(e=>{const p=personFor(e.title),nx=!nextDone&&i===0&&!e.allDay&&e.startMs>now-300000;if(nx)nextDone=true;rows++;
+      h+='<div class="ag-row'+(nx?' next':'')+'"><span class="dot'+(p?' pdot':'')+'" style="'+(p?pvars(p):'--c:'+(CATC[e.visit?'hm':e.cat]||'#fff'))+'"></span><span class="tm">'+(e.allDay?'All day':fmtTime(e.startMs))+'</span>'+
+        '<span class="tt">'+esc(e.title)+(nx?'<small data-until="'+e.startMs+'">'+untilText(e.startMs)+'</small>':'')+'</span>'+(isNew(e)?'<span class="ag-new">New</span>':'')+'</div>'})}
+  const age=calAge();
+  return (h||'<p class="ag-empty">Nothing on the calendar for the next few days.</p>')+(age?'<p class="ag-age">'+esc(age.charAt(0).toUpperCase()+age.slice(1))+'</p>':'')}
+function glanceCal(){const ahead=lookAhead(),D=DAYS[dowOf(S.today)],ND=DAYS[dowOf(addDays(S.today,1))];
+  let w='';if(WX&&WX.current){const c=WX.current,l=WMO(c.weather_code),d=WX.daily,ti=todayIdx();
+    w='<button class="cg-wx" data-act="open" data-s="weather" aria-label="Weather details, forecast and radar">'+icon(l[1],c.is_day!==0)+'<b>'+rnd(c.temperature_2m)+'°</b><span>'+esc(l[0])+(ti>=0?', '+(ahead&&ti+1<d.time.length?'low tonight '+rnd(d.temperature_2m_min[ti+1])+'°':rnd(d.temperature_2m_max[ti])+'° today'):'')+'</span><i aria-hidden="true">›</i></button>'}
+  else w='<button class="cg-wx" data-act="open" data-s="weather"><span>'+(WXstate==='noloc'?'Add your ZIP in Settings › Household':'Weather is loading')+'</span></button>';
+  return '<section class="glance cg" aria-label="Time, weather and calendar"><div class="g-date">'+parse(S.today).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</div>'+
+    '<div class="g-time" id="time">'+clockHTML()+'</div>'+w+
+    '<button class="agenda2" id="agenda2" data-act="open" data-s="week" aria-label="Calendar for the next few days. Tap for the week.">'+agendaView()+'</button>'+
+    '<div class="g-mid" id="gmid">'+midView()+'</div></section>'}
+function weatherSheet(){return '<div class="wxsheet">'+wxGlance()+tipView()+'<div class="g-sky">'+sunBlock()+'</div></div>'}
+// the agenda shows whole rows only; what doesn't fit is a tap away in the week view
+function fitAgenda(){const A=document.getElementById('agenda2');if(!A)return;const rows=[...A.querySelectorAll('.ag-row,.ag-day')];rows.forEach(r=>r.hidden=false);
+  const old=A.querySelector('.ag-more');if(old)old.remove();if(A.scrollHeight<=A.clientHeight+1)return;
+  // measure every row before hiding any, so hiding one can't pull the next up into view
+  const lim=A.getBoundingClientRect().bottom-30,over=rows.map(r=>r.getBoundingClientRect().bottom>lim);let hid=0;
+  rows.forEach((r,i)=>{if(over[i]){r.hidden=true;if(r.classList.contains('ag-row'))hid++}});
+  // never leave a day name with nothing under it
+  rows.forEach((r,i)=>{if(r.classList.contains('ag-day')&&!r.hidden&&(!rows[i+1]||rows[i+1].hidden))r.hidden=true});
+  if(hid)A.insertAdjacentHTML('beforeend','<span class="ag-more">'+hid+' more this week ›</span>')}
+function inboxCard(){const L=listsData(),open=[];LISTS.forEach(x=>(L[x.k]||[]).forEach(i=>{if(!i.done)open.push(Object.assign({l:x.k},i))}));
+  const mail=open.filter(i=>i.from),recent=mail.slice(-3).reverse(),who=[...new Set(mail.slice(-6).map(i=>i.from))].slice(0,2);
+  const n=k=>open.filter(i=>i.l===k).length,summary=[n('buy')?n('buy')+' to buy':'',n('todo')?n('todo')+' to do':''].filter(Boolean).join(', ');
+  const addr=INBOX.status&&INBOX.status.address;
+  if(recent.length)return '<button class="pane hcard" data-act="open" data-s="lists"><span>From email</span><b>'+esc(recent.map((i,k)=>k?i.t.charAt(0).toLowerCase()+i.t.slice(1):i.t).join(', '))+'</b><small>'+esc('from '+who.join(' and '))+'</small></button>';
+  return '<button class="pane hcard" data-act="open" data-s="lists"><span>Lists</span>'+(summary?'<b>'+esc(summary.charAt(0).toUpperCase()+summary.slice(1))+'</b>':'<b class="empty">Nothing to buy or do</b>')+'<small>'+esc(addr?'Email '+addr:'Tap to add')+'</small></button>'}
 
 /* ---------- kitchen timers, the leave-the-house countdown, and dated countdowns ---------- */
 const fmtLeft=ms=>{const t=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60;return (h?h+':'+pad(m):m)+':'+pad(x)};
@@ -1143,7 +1217,8 @@ function timerView(){const d=S.tdraft||{};
 function keepTyped(){const n=document.getElementById('tname-in');if(n&&S.tdraft)S.tdraft.name=n.value}
 
 /* ---- what's new: shown once per release, until tapped or for a day ---- */
-const NEWS={id:'2026-11-22-inbox',items:[
+const NEWS={id:'2026-11-22-calfirst',items:[
+  ['Try the Calendar first layout.','Settings › Home layout. It puts the next few days of the calendar under the clock, counts down to the next event, tags new events, and shows what was emailed to the hub. Classic stays until you choose.'],
   ['A To do list.','In Lists, next to Need to buy. Once the hub’s email address is set up, emailed groceries, to-dos and meals land here by themselves.'],
   ['Live radar.','Tap Radar next to Hours and 5 days for the National Weather Service radar near you, moving through the last hour. Switch to Country for the whole US.'],
   ['Name your timers.','Tap + next to the timer buttons to pick a name and any length, from 1 minute to 90. Tap a running timer’s name to rename it.'],
@@ -1232,7 +1307,8 @@ async function saveHouse(){const v=id=>{const n=document.getElementById(id);retu
   if(!zip)x.loc=null;
   x.rev=Date.now();const moved=JSON.stringify(x.loc)!==JSON.stringify(P.loc);lsSet('hub-profile',JSON.stringify(x));applyProfile(x);S.err=null;
   if(moved){WX=null;lsSet('hub-wx','');WXstate='loading';loadWx().then(render)}closeSheet()}
-function settingsView(){return '<section class="card"><div class="setrow"><div><h3>Household</h3><div class="note">Your location, weekly schedule and checklists. Saved only on this tablet.</div></div><button class="pillbtn" data-act="open" data-s="house">Edit household</button></div></section>'+peopleSettings()+'<section class="card"><div class="setrow"><div><h3>Glass effect</h3><div class="note">Light uses frosted panels without live blur. Faster on older tablets.</div></div><div class="seg"><button data-act="lite" data-v="0" aria-pressed="'+(!S.lite)+'">Full</button><button data-act="lite" data-v="1" aria-pressed="'+S.lite+'">Light</button></div></div>'+
+function settingsView(){return '<section class="card"><div class="setrow"><div><h3>Household</h3><div class="note">Your location, weekly schedule and checklists. Saved only on this tablet.</div></div><button class="pillbtn" data-act="open" data-s="house">Edit household</button></div></section>'+peopleSettings()+'<section class="card">'+
+  '<div class="setrow"><div><h3>Home layout</h3><div class="note">Calendar first puts the next three days under the clock, and shows what was emailed to the hub. Weather details move behind the weather line.</div></div><div class="seg"><button data-act="layout" data-v="classic" aria-pressed="'+(S.layout!=='cal')+'">Classic</button><button data-act="layout" data-v="cal" aria-pressed="'+(S.layout==='cal')+'">Calendar first</button></div></div>'+'<div class="setrow"><div><h3>Glass effect</h3><div class="note">Light uses frosted panels without live blur. Faster on older tablets.</div></div><div class="seg"><button data-act="lite" data-v="0" aria-pressed="'+(!S.lite)+'">Full</button><button data-act="lite" data-v="1" aria-pressed="'+S.lite+'">Light</button></div></div>'+
   '<div class="setrow"><div><h3>Daytime rest</h3><div class="note">After 20 minutes with no one touching it, the screen dims to protect it from burn-in. Tap anywhere to wake it.</div></div><div class="seg"><button data-act="dimset" data-v="0" aria-pressed="'+(!S.dimOn)+'">Off</button><button data-act="dimset" data-v="1" aria-pressed="'+S.dimOn+'">On</button></div></div>'+
   '<div class="setrow"><div><h3>Sky</h3><div class="note">Follow the sun moves the light and color with the real sky over '+(LOC?LOC.label:'not set')+'. Always dusk keeps the warm evening look all day.</div></div><div class="seg"><button data-act="skymode" data-v="live" aria-pressed="'+(S.skyMode==='live')+'">Follow the sun</button><button data-act="skymode" data-v="dusk" aria-pressed="'+(S.skyMode==='dusk')+'">Always dusk</button></div></div>'+
   '<div class="setrow" style="flex-direction:column;align-items:stretch"><div><h3>Preview the day</h3><div class="note">Drag to watch the sky from dawn to night. <b id="prevlbl">'+(S.previewMin==null?'Showing now':fmtTime(skyNow().getTime()))+'</b></div></div><input type="range" id="skyprev" min="0" max="1439" step="5" value="'+(S.previewMin==null?new Date().getHours()*60+new Date().getMinutes():S.previewMin)+'" aria-label="Preview time of day" style="width:100%;accent-color:#fff"><div><button class="pillbtn sm" data-act="prevnow">Back to now</button></div></div>'+
@@ -1261,6 +1337,7 @@ function sheetView(){if(!S.sheet||(S.sheet==='cal'&&!INART&&!FEED))return '';let
   else if(S.sheet==='mail'){small=true;title='Email “'+LSHORT[S.mail.k]+'”';sub='Pick who gets it';body=mailView()}
   else if(S.sheet==='timer'){small=true;title=S.tdraft&&S.tdraft.id?'Name this timer':'New timer';sub=S.tdraft&&S.tdraft.id?'It shows by the countdown and when it rings':'Pick a name and how long';body=timerView()}
   else if(S.sheet==='person'){const p=personById(S.person),x=p?personStats()[p.id]:null;title=p?p.n:'Family';sub='Today'+(x&&x.of?', '+x.n+' of '+x.of+' done':'');body=personView()}
+  else if(S.sheet==='weather'){small=true;title='Weather';sub=LOC?'Near '+LOC.label:'';body=weatherSheet()}
   else if(S.sheet==='radar'){const L=localRadar(),us=S.radarView==='us'||!L;title='Radar';sub=us?'United States':(L.city||L.st)+' area';
     nav=L?'<div class="seg" role="group" aria-label="Radar area"><button data-act="radarview" data-v="local" aria-pressed="'+!us+'">Near us</button><button data-act="radarview" data-v="us" aria-pressed="'+us+'">Country</button></div>':'';body=radarView()}
   else if(S.sheet==='news'){small=true;title='What’s new';sub='On the kitchen hub';body=newsView()}
@@ -1289,7 +1366,7 @@ function fitLists(){document.querySelectorAll('.now .list').forEach(L=>{const ro
   const room=L.clientHeight-52;let shown=0;for(const r of rows){if(r.offsetTop-L.offsetTop+r.offsetHeight<=room)shown++;else break}
   rows.slice(Math.max(1,shown)).forEach(r=>r.hidden=true);const n=rows.length-Math.max(1,shown);
   L.insertAdjacentHTML('beforeend','<button class="jc add more" data-act="openday" data-d="'+S.today+'">+'+n+' more ›</button>')})}
-addEventListener('resize',()=>requestAnimationFrame(fitLists));
+addEventListener('resize',()=>requestAnimationFrame(()=>{fitLists();fitAgenda()}));
 // a chip row that is wider than the pane drops its last job chips into the "+N more" count
 function fitChips(){document.querySelectorAll('.now .jcs').forEach(R=>{let guard=6;while(R.scrollWidth>R.clientWidth+1&&guard--){const more=R.querySelector('.jc.more'),jobs=[...R.querySelectorAll('.jc[data-act="opengroup"]')];if(!jobs.length)break;
   jobs[jobs.length-1].remove();if(more){more.textContent='+'+(parseInt(more.textContent.slice(1))+1)+' more ›'}else{const side=R.querySelector('.side');(side||null);R.insertAdjacentHTML('beforeend','<button class="jc more" data-act="openday" data-d="'+S.today+'">+1 more ›</button>')}}})}
@@ -1299,10 +1376,11 @@ function render(){
   const a=document.activeElement,id=a&&a.id,txt=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA');let val,ss,se;
   if(txt){val=a.value;try{ss=a.selectionStart;se=a.selectionEnd}catch(e){}}
   const sb=document.getElementById('sheetbody'),sbTop=sb?sb.scrollTop:0,prevSheet=S._lastSheet;
-  app.innerHTML='<main class="home">'+glanceView()+'<div class="act">'+nowPane()+'<div class="cards">'+mealCard()+nextCard()+'</div></div></main>'+dock()+sheetView()+
+  const calFirst=S.layout==='cal';
+  app.innerHTML='<main class="home'+(calFirst?' calfirst':'')+'">'+(calFirst?glanceCal():glanceView())+'<div class="act">'+nowPane()+'<div class="cards">'+mealCard()+(calFirst?inboxCard():nextCard())+'</div></div></main>'+dock()+sheetView()+
     (S.err?'<div class="status glass" role="status">'+esc(S.err)+'</div>':S.toast?'<button class="status glass" data-act="open" data-s="lists" style="border:0;color:inherit;font:inherit;font-size:14px;cursor:pointer;min-height:44px">'+esc(S.toast)+' ›</button>':battNote())+(S.undo?'<div class="status glass undo" role="status">'+(S.undo.verb||'Checked')+' “'+esc(S.undo.label.slice(0,48))+'”<button data-act="undo">Undo</button></div>':S.news&&!S.sheet?'<button class="status glass news" data-act="news">What’s new ›</button>':'')+(S.amb?ambientView():'')+(S.dim&&!S.amb?'<div class="dimmer" aria-hidden="true"></div>':'')+(S.ring?'<div class="alarm" data-act="ringoff" role="alertdialog" aria-label="Timer done"><b>Time’s up</b><span>'+esc(S.ring.label)+'</span><em>Tap anywhere to stop</em></div>':'');
   calSheet();
-  requestAnimationFrame(()=>{fitLists();fitChips()});
+  requestAnimationFrame(()=>{fitLists();fitChips();fitAgenda()});
   // a redraw of a sheet that's already open keeps its scroll and doesn't replay the slide-up
   const nb=document.getElementById('sheetbody');if(nb&&prevSheet===S.sheet+S.sel){nb.scrollTop=sbTop;const sh=nb.closest('.sheet');if(sh)sh.style.animation='none'}S._lastSheet=S.sheet+S.sel;
   document.documentElement.style.overflow=S.sheet?'hidden':'';
@@ -1319,6 +1397,7 @@ function tick(){const t=new Date(),el=document.getElementById('time');if(el)el.i
   if(S.ambOn&&!S.amb&&!S.sheet&&!S.timers.length&&!S.ring&&(t.getHours()>=21||t.getHours()<5)&&Date.now()-lastAct>180000&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))){S.amb=true;render()}
   // the radar refreshes every 2 minutes while open, and closes after 10 untouched minutes so rest and night modes still run
   if(S.sheet==='radar'){if(Date.now()-lastAct>600000){closeSheet();return}const rk=Math.floor(Date.now()/120000);if(rk!==S.radarT){S.radarT=rk;const im=document.getElementById('radarimg');if(im)im.src=radarSrc()}}
+  document.querySelectorAll('[data-until]').forEach(n=>{n.textContent=untilText(+n.dataset.until)});
   const sun=document.getElementById('sun');if(sun)sun.innerHTML=sunBlock();
   refreshMid();
   paintSky();
@@ -1368,6 +1447,7 @@ function onAct(b){const a=b.dataset.act,ds=b.dataset;
   if(a==='tmin'){keepTyped();S.tdraft.m=+ds.m;render();return}
   if(a==='person'){S.person=ds.id;openSheet('person');return}
   if(a==='radarview'){S.radarView=ds.v;render();return}
+  if(a==='layout'){S.layout=ds.v;lsSet('hub-layout',ds.v);render();return}
   if(a==='news'){S.news=false;lsSet('hub-news-seen',NEWS.id);openSheet('news');return}
   if(a==='dimset'){S.dimOn=ds.v==='1';lsSet('hub-dim',ds.v);render();return}
   if(a==='scan'){openScan();return}
@@ -1434,6 +1514,8 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 (function(){const st=document.getElementById('stars');let seed=7;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;let h='';
   for(let i=0;i<90;i++){const o=(.25+rnd()*.75).toFixed(2),z=rnd()<.12?3:2;h+='<i style="left:'+(rnd()*100).toFixed(2)+'%;top:'+(rnd()*72).toFixed(2)+'%;opacity:'+o+';width:'+z+'px;height:'+z+'px"></i>'}st.innerHTML=h})();
 S._ri=routineIdx(new Date());
+// home layout: Classic stays the default until Dan chooses; ?look=cal previews the calendar-first layout
+S.layout=/[?&]look=cal\b/.test(location.search)?'cal':lsGet('hub-layout','classic');
 // the "What's new" note stays until it's tapped, or for a day after it first appears
 (function(){if(lsGet('hub-news-seen','')===NEWS.id)return;const f=lsGet('hub-news-first','').split(':');
   if(f[0]!==NEWS.id){lsSet('hub-news-first',NEWS.id+':'+Date.now());S.news=true}else S.news=Date.now()-(+f[1]||0)<864e5})();
