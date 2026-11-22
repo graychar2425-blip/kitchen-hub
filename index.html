@@ -1444,6 +1444,9 @@ async function pullProfile(){const key=lsGet('hub-pkey','');if(!key||!(window.cr
   try{const r=await fetch('profile.enc',{cache:'no-store'});if(!r.ok)return;const e=await r.json();
     const k=await crypto.subtle.importKey('raw',b64u(key),'AES-GCM',false,['decrypt']);
     const x=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:b64u(e.iv)},k,b64u(e.ct))));
+    // the hub's calendar and inbox link can arrive in the profile; it only fills an empty Settings field,
+    // and it's applied apart from the rest so household edits made on the tablet are never overwritten
+    if(x&&typeof x.feed==='string'&&/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec\?key=[\w-]+$/.test(x.feed)&&!lsGet('hub-feed',''))applyFeed(x.feed);
     let cur=null;try{cur=JSON.parse(lsGet('hub-profile','null'))}catch(_){}
     if(!okProfile(x)||(cur&&(cur.rev||0)>=(x.rev||0)))return;
     const moved=!cur||JSON.stringify(cur.loc)!==JSON.stringify(x.loc);lsSet('hub-profile',JSON.stringify(x));applyProfile(merge(clone(GENERIC),x));
