@@ -1108,8 +1108,7 @@ function keepTyped(){const n=document.getElementById('tname-in');if(n&&S.tdraft)
 const NEWS={id:'2026-11-22',items:[
   ['Name your timers.','Tap + next to the timer buttons to pick a name and any length, from 1 minute to 90. Tap a running timer’s name to rename it.'],
   ['See one person’s day.','Tap a family member’s name on the home screen for just their jobs and appointments today.'],
-  ['No more stale information.','If the calendar or weather can’t update, the hub now says how old it is.'],
-  ['Faster updates.','Changes from Claude now reach the hub within a few minutes.']]};
+  ['No more stale information.','If the calendar or weather can’t update, the hub now says how old it is.']]};
 function newsView(){return '<ol class="newsl">'+NEWS.items.map(x=>'<li><b>'+esc(x[0])+'</b> '+esc(x[1])+'</li>').join('')+'</ol><div class="qbtns"><button class="primary" data-act="close">Got it</button></div>'}
 function peopleSettings(){const ps=people(),own=settingsDoc().owners||{};
   let h='<section class="card"><div class="setrow" style="flex-direction:column;align-items:stretch"><div><h3>Family</h3><div class="note">Give each person a color. Their jobs show their avatar, and a calendar event takes their color when their name is in its title, like “Sam soccer”.</div></div>';
@@ -1401,8 +1400,7 @@ async function pullProfile(){const key=lsGet('hub-pkey','');if(!key||!(window.cr
 if(!INART&&location.protocol==='https:'){let built=null;pullProfile();const chk=async()=>{try{const r=await fetch('version.txt',{cache:'no-store'});if(!r.ok)return;const v=(await r.text()).trim();
     if(built===null){built=v;return}
     if(v!==built&&!S.sheet&&!S.timers.length&&!S.ring&&!scanStream&&Date.now()-lastAct>120000&&!(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)))location.reload()}catch(e){}};
-  // a new version is a tiny file to check, so look every 2 minutes; it still waits for 2 idle minutes before reloading
-  chk();setInterval(chk,2*60*1000);setInterval(pullProfile,10*60*1000)}
+  chk();setInterval(()=>{chk();pullProfile()},10*60*1000)}
 startCalendar();
 if(!INART){loadFeed();setInterval(()=>{if(document.visibilityState==='visible')loadFeed()},15*60*1000)}
 if(!INART)setInterval(()=>{const f=document.getElementById('calframe');if(f&&document.visibilityState==='visible')f.src=embedUrl()},30*60*1000);
