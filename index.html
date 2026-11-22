@@ -563,6 +563,11 @@ button.pill:active{transform:scale(.97)}
 .news{top:auto;left:max(16px, env(safe-area-inset-left, 0px));transform:none;bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);border:0;color:var(--ink);font:inherit;font-size:15px;font-weight:600;padding:0 20px;min-height:48px;border-radius:14px;cursor:pointer}
 .newsl{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:12px;font-size:17px}
 .newsl b{font-weight:600}
+.radar{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;gap:12px}
+.radar img{display:block;max-width:100%;max-height:calc(100dvh - 304px);height:auto;border-radius:14px;background:rgba(255,255,255,.06);image-rendering:auto}
+.radar img.us{width:900px}
+.radar .note{text-align:center}
+.sheet .seg{flex:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -749,6 +754,23 @@ async function loadWx(){if(!LOC){WXstate='noloc';return}
   catch(e){WXstate=WX?'offline':(INART?'blocked':'offline')}
   paintSky();render()}
 
+/* ================= radar: the National Weather Service's own live loops, free and with no account =================
+   The nearest radar station comes from api.weather.gov once per location; the loop is a plain animated picture
+   of the last hour, refreshed every 2 minutes while the radar is open. */
+let RADAR=null;try{RADAR=JSON.parse(lsGet('hub-radar','null'))}catch(e){}
+const radarKey=()=>LOC?(+LOC.lat).toFixed(2)+','+(+LOC.lon).toFixed(2):'';
+const localRadar=()=>RADAR&&RADAR.k===radarKey()?RADAR:null;
+async function findRadar(){const k=radarKey();if(!k||localRadar())return;
+  try{const r=await fetch('https://api.weather.gov/points/'+k);if(!r.ok)throw 0;const p=(await r.json()).properties||{};if(!p.radarStation)throw 0;
+    const rl=p.relativeLocation&&p.relativeLocation.properties;RADAR={k,st:p.radarStation,city:rl&&rl.city||''};lsSet('hub-radar',JSON.stringify(RADAR))}
+  catch(e){}
+  if(S.sheet==='radar')render()}
+const radarSrc=()=>{const L=S.radarView!=='us'&&localRadar();return 'https://radar.weather.gov/ridge/standard/'+(L?L.st:'CONUS')+'_loop.gif?t='+S.radarT};
+function radarView(){const L=localRadar(),us=S.radarView==='us'||!L;
+  const msg=!LOC?'Add your ZIP in Settings › Household for the radar near you.':us?'The whole country, last hour.':'Within about 120 miles of the '+esc(L.city||L.st)+' radar, last hour.';
+  return '<div class="radar"><img id="radarimg" class="'+(us?'us':'')+'" src="'+radarSrc()+'" alt="Weather radar loop" onload="var m=document.getElementById(\'radarmsg\');if(m)m.textContent=m.dataset.ok" onerror="var m=document.getElementById(\'radarmsg\');if(m)m.textContent=\'Can’t reach the radar right now. It tries again in 2 minutes.\'">'+
+    '<p class="note" id="radarmsg" data-ok="'+msg+' Live from the National Weather Service, updated every 2 minutes.">Loading the radar…</p></div>'}
+
 /* ================= calendar: connector inside claude.ai, Google embed when self-hosted ================= */
 const ART_CALS=[];
 function loadCals(){if(INART)return ART_CALS;return lsGet('hub-cals','').split(/[\s,]+/).filter(Boolean).map(x=>({id:x,name:x,holiday:/holiday/.test(x)}))}
@@ -870,7 +892,7 @@ function moonInfo(){const P=29.530588853,age=(((Date.now()-Date.UTC(2000,0,6,18,
 function sunBlock(){const s=sunTimes(),m=moonInfo();
   return (s.rise&&s.set?'<div>Sunrise '+fmtTime(s.rise)+'<span class="sep" aria-hidden="true"></span>Sunset '+fmtTime(s.set)+'</div>':'')+'<div class="moon">'+m.svg+m.text+'</div>'}
 const SHIRT='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M8 3l4 2 4-2 5 4-3 3-2-1v12H8V9l-2 1-3-3z"/></svg>';
-const seg=v=>'<div class="g-seg" role="group" aria-label="Forecast"><button data-act="wxview" data-v="hours" aria-pressed="'+(v==='hours')+'">Hours</button><button data-act="wxview" data-v="days" aria-pressed="'+(v==='days')+'">5 days</button></div>';
+const seg=v=>'<div class="g-seg" role="group" aria-label="Forecast"><button data-act="wxview" data-v="hours" aria-pressed="'+(v==='hours')+'">Hours</button><button data-act="wxview" data-v="days" aria-pressed="'+(v==='days')+'">5 days</button><button data-act="open" data-s="radar" aria-pressed="false">Radar</button></div>';
 function wxGlance(){
   if(!WX)return '<div class="g-wx"><div class="c"><b>'+(WXstate==='noloc'?'Add your ZIP in Settings › Household':WXstate==='loading'?'Loading the weather…':WXstate==='offline'?'Can’t reach the weather service':'Weather shows on the tablet')+'</b>'+(WXstate==='offline'?'Trying again soon.':'')+'</div></div>';
   const c=WX.current,l=WMO(c.weather_code),d=WX.daily,hr=WX.hourly,ti=todayIdx(),ahead=lookAhead(),view=S.wxView||(ahead?'days':'hours');
@@ -1105,7 +1127,8 @@ function timerView(){const d=S.tdraft||{};
 function keepTyped(){const n=document.getElementById('tname-in');if(n&&S.tdraft)S.tdraft.name=n.value}
 
 /* ---- what's new: shown once per release, until tapped or for a day ---- */
-const NEWS={id:'2026-11-22',items:[
+const NEWS={id:'2026-11-22-radar',items:[
+  ['Live radar.','Tap Radar next to Hours and 5 days for the National Weather Service radar near you, moving through the last hour. Switch to Country for the whole US.'],
   ['Name your timers.','Tap + next to the timer buttons to pick a name and any length, from 1 minute to 90. Tap a running timer’s name to rename it.'],
   ['See one person’s day.','Tap a family member’s name on the home screen for just their jobs and appointments today.'],
   ['No more stale information.','If the calendar or weather can’t update, the hub now says how old it is.']]};
@@ -1217,6 +1240,8 @@ function sheetView(){if(!S.sheet||(S.sheet==='cal'&&!INART&&!FEED))return '';let
   else if(S.sheet==='mail'){small=true;title='Email “'+LSHORT[S.mail.k]+'”';sub='Pick who gets it';body=mailView()}
   else if(S.sheet==='timer'){small=true;title=S.tdraft&&S.tdraft.id?'Name this timer':'New timer';sub=S.tdraft&&S.tdraft.id?'It shows by the countdown and when it rings':'Pick a name and how long';body=timerView()}
   else if(S.sheet==='person'){const p=personById(S.person),x=p?personStats()[p.id]:null;title=p?p.n:'Family';sub='Today'+(x&&x.of?', '+x.n+' of '+x.of+' done':'');body=personView()}
+  else if(S.sheet==='radar'){const L=localRadar(),us=S.radarView==='us'||!L;title='Radar';sub=us?'United States':(L.city||L.st)+' area';
+    nav=L?'<div class="seg" role="group" aria-label="Radar area"><button data-act="radarview" data-v="local" aria-pressed="'+!us+'">Near us</button><button data-act="radarview" data-v="us" aria-pressed="'+us+'">Country</button></div>':'';body=radarView()}
   else if(S.sheet==='news'){small=true;title='What’s new';sub='On the kitchen hub';body=newsView()}
   else {title='Settings';small=true;body=settingsView()}
   return '<div class="scrim" data-act="close"></div><div class="sheet glass'+(small?' small':'')+'" tabindex="-1" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><header class="sheethead"><h2>'+esc(title)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h2>'+nav+'<button class="iconbtn" data-act="close" aria-label="Close">×</button></header><div class="sheetbody" id="sheetbody">'+body+'</div></div>'}
@@ -1257,7 +1282,8 @@ function render(){
     (S.err?'<div class="status glass" role="status">'+esc(S.err)+'</div>':battNote())+(S.undo?'<div class="status glass undo" role="status">'+(S.undo.verb||'Checked')+' “'+esc(S.undo.label.slice(0,48))+'”<button data-act="undo">Undo</button></div>':S.news&&!S.sheet?'<button class="status glass news" data-act="news">What’s new ›</button>':'')+(S.amb?ambientView():'')+(S.dim&&!S.amb?'<div class="dimmer" aria-hidden="true"></div>':'')+(S.ring?'<div class="alarm" data-act="ringoff" role="alertdialog" aria-label="Timer done"><b>Time’s up</b><span>'+esc(S.ring.label)+'</span><em>Tap anywhere to stop</em></div>':'');
   calSheet();
   requestAnimationFrame(()=>{fitLists();fitChips()});
-  const nb=document.getElementById('sheetbody');if(nb&&prevSheet===S.sheet+S.sel)nb.scrollTop=sbTop;S._lastSheet=S.sheet+S.sel;
+  // a redraw of a sheet that's already open keeps its scroll and doesn't replay the slide-up
+  const nb=document.getElementById('sheetbody');if(nb&&prevSheet===S.sheet+S.sel){nb.scrollTop=sbTop;const sh=nb.closest('.sheet');if(sh)sh.style.animation='none'}S._lastSheet=S.sheet+S.sel;
   document.documentElement.style.overflow=S.sheet?'hidden':'';
   if(id){const n=document.getElementById(id);if(n){if(txt&&n.value!==val)n.value=val;n.focus({preventScroll:true});try{if(ss!=null)n.setSelectionRange(ss,se)}catch(e){}}}
 }
@@ -1270,6 +1296,8 @@ function tick(){const t=new Date(),el=document.getElementById('time');if(el)el.i
   if(S.amb){const isDark=!!document.querySelector('.ambient.dark');if(isDark!==overnight())render()}
   if(!INART&&t.getHours()===3&&!S.timers.length&&!S.ring&&lsGet('hub-reloaded','')!==iso(t)){lsSet('hub-reloaded',iso(t));location.reload();return}
   if(S.ambOn&&!S.amb&&!S.sheet&&!S.timers.length&&!S.ring&&(t.getHours()>=21||t.getHours()<5)&&Date.now()-lastAct>180000&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))){S.amb=true;render()}
+  // the radar refreshes every 2 minutes while open, and closes after 10 untouched minutes so rest and night modes still run
+  if(S.sheet==='radar'){if(Date.now()-lastAct>600000){closeSheet();return}const rk=Math.floor(Date.now()/120000);if(rk!==S.radarT){S.radarT=rk;const im=document.getElementById('radarimg');if(im)im.src=radarSrc()}}
   const sun=document.getElementById('sun');if(sun)sun.innerHTML=sunBlock();
   refreshMid();
   paintSky();
@@ -1289,6 +1317,7 @@ function qsave(v){const q=S.q;if(!q)return;const D=DAYS[dowOf(q.d)],m=mondayOf(q
 function openSheet(s,d){S.sheet=s;if(d)S.sel=d;S.flash=null;syncSubs();render();setTimeout(()=>{const c=document.querySelector('.sheet');if(c&&!document.activeElement.closest('.sheet'))c.focus({preventScroll:true})},30)}
 function closeSheet(){if(S.previewMin!=null){S.previewMin=null;lastSky='';setTimeout(paintSky)}S.sheet=null;S.sel=S.today;syncSubs();render()}
 function onAct(b){const a=b.dataset.act,ds=b.dataset;
+  if(a==='open'&&ds.s==='radar'){S.radarT=Math.floor(Date.now()/120000);findRadar()}
   if(a==='open'){openSheet(ds.s);if(ds.s==='add')focusIn('add-'+S.addDest);return}
   if(a==='qedit'){S.q={k:ds.k,d:ds.d};openSheet('qedit');focusIn('qinput',true);return}
   if(a==='qpick'){qsave(ds.v);return}
@@ -1317,6 +1346,7 @@ function onAct(b){const a=b.dataset.act,ds=b.dataset;
   if(a==='tpick'){keepTyped();S.tdraft.name=S.tdraft.name===ds.v?'':ds.v;render();return}
   if(a==='tmin'){keepTyped();S.tdraft.m=+ds.m;render();return}
   if(a==='person'){S.person=ds.id;openSheet('person');return}
+  if(a==='radarview'){S.radarView=ds.v;render();return}
   if(a==='news'){S.news=false;lsSet('hub-news-seen',NEWS.id);openSheet('news');return}
   if(a==='dimset'){S.dimOn=ds.v==='1';lsSet('hub-dim',ds.v);render();return}
   if(a==='scan'){openScan();return}
