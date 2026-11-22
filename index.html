@@ -553,6 +553,16 @@ input[type=time]{font:inherit;color:var(--ink);background:rgba(255,255,255,.1);b
 .seg button,.g-seg button,.pillbtn.sm{min-height:44px}
 .jc.more{background:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
 .g-leave.go b{color:#FFB4A6}
+/* ---------- named timers, family member view, freshness, what's new ---------- */
+.g-timer .tname{border:0;background:none;padding:0;font:inherit;font-size:17px;color:var(--muted);cursor:pointer;text-align:left;min-height:44px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.g-tbtns .tnew{font-size:20px;line-height:1}
+button.pill{border:0;color:inherit;font:inherit;cursor:pointer;min-height:44px}
+button.pill:active{transform:scale(.97)}
+.stale{display:block;font-size:13px;color:var(--faint)}
+.hcard span .stale{display:inline;font-size:inherit}
+.news{top:auto;left:max(16px, env(safe-area-inset-left, 0px));transform:none;bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);border:0;color:var(--ink);font:inherit;font-size:15px;font-weight:600;padding:0 20px;min-height:48px;border-radius:14px;cursor:pointer}
+.newsl{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:12px;font-size:17px}
+.newsl b{font-weight:600}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -749,11 +759,14 @@ function feedNorm(list){const out=[];(Array.isArray(list)?list:[]).forEach(e=>{i
   else{const st=new Date(e.start),en=e.end?new Date(e.end):null;if(isNaN(st))return;out.push({title,allDay:false,day:iso(st),startMs:st.getTime(),endMs:en&&!isNaN(en)?en.getTime():null,location:loc,cat})}});return out}
 async function loadFeed(){if(!FEED)return;
   try{const r=await fetch(FEED+(FEED.includes('?')?'&':'?')+'days=8',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();
-    if(j.error){CAL.state='feedbad';CAL.err=j.error}else{CAL.events=feedNorm(j.events);CAL.state='ok';CAL.err=null;lsSet('hub-feed-cache',JSON.stringify(j))}}
+    if(j.error){CAL.state='feedbad';CAL.err=j.error}else{CAL.events=feedNorm(j.events);CAL.state='ok';CAL.err=null;CAL.at=j.at=Date.now();lsSet('hub-feed-cache',JSON.stringify(j))}}
   catch(e){const c=(()=>{try{return JSON.parse(lsGet('hub-feed-cache','null'))}catch(_){return null}})();
-    if(c&&c.events&&CAL.state!=='ok'){CAL.events=feedNorm(c.events);CAL.state='ok'}CAL.err='offline';if(CAL.state==='loading')CAL.state='error'}
+    if(c&&c.events&&CAL.state!=='ok'){CAL.events=feedNorm(c.events);CAL.state='ok';CAL.at=c.at||null}CAL.err='offline';if(CAL.state==='loading')CAL.state='error'}
   render()}
-const CAL={state:INART||lsGet('hub-feed','')?'loading':'embed',events:[],err:null};
+const CAL={state:INART||lsGet('hub-feed','')?'loading':'embed',events:[],err:null,at:null};
+// After a failed refresh, say how old the calendar is, so old appointments never pass for current ones.
+// One missed refresh is normal; only flag it once the last good copy is over 45 minutes old.
+function calAge(){if(!FEED||CAL.state!=='ok'||CAL.err!=='offline')return '';if(!CAL.at)return 'calendar offline';return Date.now()-CAL.at>45*60000?'calendar as of '+fmtTime(CAL.at):''}
 let MCP=null,calUn=[];const calRes={};
 const DENY=['needs_reauth','server_not_connected','selection_required','blocked_by_policy','approval_required','not_in_manifest','consent_required'];
 const calInput=id=>({calendarId:id,startTime:S.today+'T00:00:00',endTime:addDays(S.today,7)+'T00:00:00',orderBy:'startTime',pageSize:100});
@@ -862,7 +875,9 @@ function wxGlance(){
   if(!WX)return '<div class="g-wx"><div class="c"><b>'+(WXstate==='noloc'?'Add your ZIP in Settings › Household':WXstate==='loading'?'Loading the weather…':WXstate==='offline'?'Can’t reach the weather service':'Weather shows on the tablet')+'</b>'+(WXstate==='offline'?'Trying again soon.':'')+'</div></div>';
   const c=WX.current,l=WMO(c.weather_code),d=WX.daily,hr=WX.hourly,ti=todayIdx(),ahead=lookAhead(),view=S.wxView||(ahead?'days':'hours');
   const hl=ti<0?'':ahead&&ti+1<d.time.length?'Low tonight '+rnd(d.temperature_2m_min[ti+1])+'°':'High '+rnd(d.temperature_2m_max[ti])+'°, low '+rnd(d.temperature_2m_min[ti])+'°';
-  let h='<div class="g-wx">'+icon(l[1],c.is_day!==0)+'<div class="t">'+rnd(c.temperature_2m)+'°</div><div class="c"><b>'+esc(l[0])+'</b>'+hl+'</div></div>',cells='';
+  // the weather refreshes every 20 minutes; past 75 minutes, a refresh has failed several times, so say how old it is
+  const old=WX.fetchedAt&&Date.now()-WX.fetchedAt>75*60000?'<span class="stale">Weather from '+fmtTime(WX.fetchedAt)+', can’t update</span>':'';
+  let h='<div class="g-wx">'+icon(l[1],c.is_day!==0)+'<div class="t">'+rnd(c.temperature_2m)+'°</div><div class="c"><b>'+esc(l[0])+'</b>'+hl+old+'</div></div>',cells='';
   if(view==='days'&&ti>=0){for(let i=ti+1;i<=ti+5&&i<d.time.length;i++){const pp=d.precipitation_probability_max[i]||0;
       cells+='<span class="cell"><span>'+DAYS[dowOf(d.time[i])].name.slice(0,3)+'</span>'+icon(WMO(d.weather_code[i])[1],true)+'<b>'+rnd(d.temperature_2m_max[i])+'°</b><span class="lo">'+rnd(d.temperature_2m_min[i])+'°</span><span class="pp">'+(pp>=20?pp+'%':'')+'</span></span>'}
     h+=seg('days')+'<button class="g-strip" data-act="wxview" data-v="hours" aria-label="Next five days. Tap for the next hours.">'+cells+'</button>'}
@@ -893,9 +908,9 @@ function countdowns(){return lines(P.events,'v').map(r=>{const m=/^(\d{4})-(\d{2
 function midView(){let h='';const lv=leaveInfo();
   if(lv)h+=lv.left>0?'<div class="g-leave"><b id="gleave">'+Math.ceil(lv.left/60000)+' min</b><span>to '+esc(lv.label.charAt(0).toLowerCase()+lv.label.slice(1))+'</span></div>'
     :'<div class="g-leave go"><b>Time to go</b><span>'+esc(lv.label)+'</span></div>';
-  S.timers.forEach(tm=>{h+='<div class="g-timer"><b id="tm-'+tm.id+'">'+fmtLeft(tm.end-Date.now())+'</b><span>'+esc(tm.label)+'</span><button class="tadd" data-act="tplus" data-id="'+tm.id+'" aria-label="Add a minute">+1 min</button><button class="tadd" data-act="tstop" data-id="'+tm.id+'" aria-label="Cancel timer">×</button></div>'});
+  S.timers.forEach(tm=>{h+='<div class="g-timer"><b id="tm-'+tm.id+'">'+fmtLeft(tm.end-Date.now())+'</b><button class="tname" data-act="tname" data-id="'+tm.id+'" aria-label="'+esc(tm.label)+'. Tap to name this timer.">'+esc(tm.label)+'</button><button class="tadd" data-act="tplus" data-id="'+tm.id+'" aria-label="Add a minute">+1 min</button><button class="tadd" data-act="tstop" data-id="'+tm.id+'" aria-label="Cancel timer">×</button></div>'});
   if(!S.timers.length)countdowns().forEach(c=>{h+='<div class="g-count"><b>'+(c.days===0?'Today':c.days===1?'Tomorrow':c.days+' days')+'</b><span>'+(c.days>1?'until ':'')+esc(c.name)+'</span></div>'});
-  h+='<div class="g-tbtns" role="group" aria-label="Start a timer"><span>Timer</span>'+[1,5,10,15,30].map(m=>'<button data-act="tstart" data-m="'+m+'" aria-label="'+m+' minute timer">'+m+(m===1?' min':'')+'</button>').join('')+'</div>';
+  h+='<div class="g-tbtns" role="group" aria-label="Start a timer"><span>Timer</span>'+[1,5,10,15,30].map(m=>'<button data-act="tstart" data-m="'+m+'" aria-label="'+m+' minute timer">'+m+(m===1?' min':'')+'</button>').join('')+'<button class="tnew" data-act="tnew" aria-label="Timer with a name or another length">+</button></div>';
   return h}
 function refreshMid(){const gm=document.getElementById('gmid'),sky=document.getElementById('sun');if(!gm)return;const h=midView();
   if(h.replace(/<b id="tm-[^"]+">[^<]*<\/b>/g,'')!==(gm._sig||'')){gm.innerHTML=h;gm._sig=h.replace(/<b id="tm-[^"]+">[^<]*<\/b>/g,'')}
@@ -980,10 +995,10 @@ function nextCard(){const now=Date.now(),ahead=lookAhead(),tm=addDays(S.today,1)
   const visits=(d,lab)=>householdEvents(d,lab).filter(isVisit).map(x=>({t:x.title,s:x.sub||''}));
   // tonight's remaining appointments stay visible after 7:30 pm; jobs (bins, prep) live in Right now
   let lab=ahead?'Tonight':'Next',rows=cal(S.today).concat(ahead?[]:visits(S.today,'Today'));
-  if(!rows.length){lab='Tomorrow';rows=cal(tm).concat(visits(tm,'Tomorrow'))}
-  const r=rows[0],more=rows.length-1;
-  return '<button class="pane hcard" data-act="open" data-s="week"><span>'+lab+'</span>'+(r?'<b>'+esc(r.t)+'</b><small>'+esc(r.s+(more>0?(r.s?', ':'')+'+'+more+' more':''))+'</small>'
-    :'<b class="empty">Nothing scheduled</b><small>'+(INART||FEED?'A quiet day':'Add your calendar in Settings')+'</small>')+'</button>'}
+  if(!rows.length&&!(FEED&&CAL.state!=='ok'&&CAL.state!=='loading')){lab='Tomorrow';rows=cal(tm).concat(visits(tm,'Tomorrow'))}
+  const r=rows[0],more=rows.length-1,age=calAge(),down=FEED&&CAL.state!=='ok'&&CAL.state!=='loading';
+  return '<button class="pane hcard" data-act="open" data-s="week"><span>'+lab+(age?'<span class="stale"> · '+age+'</span>':'')+'</span>'+(r?'<b>'+esc(r.t)+'</b><small>'+esc(r.s+(more>0?(r.s?', ':'')+'+'+more+' more':''))+'</small>'
+    :'<b class="empty">'+(down?'Calendar not loading':'Nothing scheduled')+'</b><small>'+(down?'Can’t reach the calendar right now':INART||FEED?'A quiet day':'Add your calendar in Settings')+'</small>')+'</button>'}
 function weekView(){let h='';
   for(let i=0;i<7;i++){const d=addDays(S.today,i),D=DAYS[dowOf(d)],lab=i===0?'Today':i===1?'Tomorrow':D.name,pl=((weekData(mondayOf(d)).plan||{})[D.k])||{},dn=dayData(d).done||{},gs=jobGroups(d),
       st={n:ROUTINE.reduce((a,r)=>a+cnt(r.items,dn),0)+gs.reduce((a,x)=>a+x.n,0),total:ROUTINE.reduce((a,r)=>a+r.items.length,0)+gs.reduce((a,x)=>a+x.of,0)};
@@ -1067,7 +1082,35 @@ function personStats(){const own=settingsDoc().owners||{},st={},done=dayData(S.t
   ROUTINE.forEach(r=>add('r:'+r.k,cnt(r.items,done),r.items.length));
   jobGroups(S.today).forEach(x=>add(x.key,x.n,x.of));return st}
 function pillsRow(){const ps=people();if(!ps.length)return '';const st=personStats();
-  return '<div class="pills">'+ps.map(p=>{const x=st[p.id];return '<span class="pill" style="'+pvars(p)+';--p:'+(x.of?Math.round(100*x.n/x.of):0)+'">'+av(p)+'<b>'+esc(p.n)+'</b>'+(x.of?'<span>'+x.n+'/'+x.of+'</span>':'')+'</span>'}).join('')+'</div>'}
+  return '<div class="pills">'+ps.map(p=>{const x=st[p.id];return '<button class="pill" data-act="person" data-id="'+p.id+'" aria-label="'+esc(p.n)+'’s day" style="'+pvars(p)+';--p:'+(x.of?Math.round(100*x.n/x.of):0)+'">'+av(p)+'<b>'+esc(p.n)+'</b>'+(x.of?'<span>'+x.n+'/'+x.of+'</span>':'')+'</button>'}).join('')+'</div>'}
+// One person's today: their calendar events (name in the title) and the job groups they own, tickable here.
+function personView(){const p=personById(S.person);if(!p)return '<p class="empty">This person isn’t on the hub any more.</p>';
+  const own=settingsDoc().owners||{},d=S.today,done=dayData(d).done||{},att=id=>'data-d="'+d+'" data-id="'+id+'"',now=Date.now(),cards=[];
+  const evs=CAL.events.filter(e=>{if(e.day!==d)return false;const o=personFor(e.title);return o&&o.id===p.id}).sort(byStart);
+  ROUTINE.forEach(r=>{if(own['r:'+r.k]===p.id)cards.push(card(r.title,r.sub,r.items.map(it=>fixItem(it,d)),done,'tday',att))});
+  cardsFor(d).forEach(c=>{if(own[c.key]===p.id)cards.push(c.html)});
+  if(!evs.length&&!cards.length)return '<p class="empty">Nothing is assigned to '+esc(p.n)+' today. Choose who does what in Settings › Family.</p><div class="qbtns"><button class="primary" data-act="close">Done</button></div>';
+  return (evs.length?'<section class="card"><h3>On the calendar</h3><div class="agenda">'+evs.map(e=>'<div class="ev'+(!e.allDay&&(e.endMs||e.startMs)<now?' past':'')+'"><span class="dot pdot" style="'+pvars(p)+'"></span><span class="tm">'+(e.allDay?'All day':fmtTime(e.startMs))+'</span><span class="tt">'+esc(e.title)+(e.location?'<small>'+esc(e.location)+'</small>':'')+'</span></div>').join('')+'</div></section>':'')+
+    (cards.length?'<div class="grid">'+cards.join('')+'</div>':'')+'<div class="qbtns"><button class="primary" data-act="close">Done</button></div>'}
+
+/* ---- timers with a name and any length ---- */
+const TNAMES=['Pasta','Rice','Oven','Eggs','Veg','Bread','Laundry','Homework','Screen time','Bath'];
+const TMINS=[1,2,3,5,8,10,12,15,20,25,30,45,60,90];
+function timerView(){const d=S.tdraft||{};
+  return '<form class="qform" data-form="timer"><input type="text" id="tname-in" value="'+esc(d.name||'')+'" placeholder="What’s it for? Like pasta or the oven" maxlength="30" autocomplete="off" enterkeyhint="done">'+
+    '<div class="qchips">'+TNAMES.map(n=>'<button type="button" class="chip" data-act="tpick" data-v="'+esc(n)+'" aria-pressed="'+(d.name===n)+'">'+esc(n)+'</button>').join('')+'</div>'+
+    (d.id?'':'<div><div class="eyebrow" style="margin-bottom:8px">How long</div><div class="qchips">'+TMINS.map(m=>'<button type="button" class="chip" data-act="tmin" data-m="'+m+'" aria-pressed="'+(d.m===m)+'">'+fmtDur(m)+'</button>').join('')+'</div></div>')+
+    '<div class="qbtns"><button type="submit" class="primary">'+(d.id?'Save the name':'Start '+fmtDur(d.m))+'</button></div></form>'}
+// the timer sheet redraws when a chip is tapped; keep whatever was typed so far
+function keepTyped(){const n=document.getElementById('tname-in');if(n&&S.tdraft)S.tdraft.name=n.value}
+
+/* ---- what's new: shown once per release, until tapped or for a day ---- */
+const NEWS={id:'2026-11-22',items:[
+  ['Name your timers.','Tap + next to the timer buttons to pick a name and any length, from 1 minute to 90. Tap a running timer’s name to rename it.'],
+  ['See one person’s day.','Tap a family member’s name on the home screen for just their jobs and appointments today.'],
+  ['No more stale information.','If the calendar or weather can’t update, the hub now says how old it is.'],
+  ['Faster updates.','Changes from Claude now reach the hub within a few minutes.']]};
+function newsView(){return '<ol class="newsl">'+NEWS.items.map(x=>'<li><b>'+esc(x[0])+'</b> '+esc(x[1])+'</li>').join('')+'</ol><div class="qbtns"><button class="primary" data-act="close">Got it</button></div>'}
 function peopleSettings(){const ps=people(),own=settingsDoc().owners||{};
   let h='<section class="card"><div class="setrow" style="flex-direction:column;align-items:stretch"><div><h3>Family</h3><div class="note">Give each person a color. Their jobs show their avatar, and a calendar event takes their color when their name is in its title, like “Sam soccer”.</div></div>';
   ps.forEach(p=>{h+='<div class="prs">'+av(p)+'<b>'+esc(p.n)+'</b><div class="sw">'+Object.keys(PCOL).map(k=>'<button class="swb" data-act="pcol" data-id="'+p.id+'" data-c="'+k+'" style="--pb:'+PCOL[k][0]+';--pi:'+PCOL[k][1]+'" aria-pressed="'+(p.c===k)+'" aria-label="'+k+'"></button>').join('')+'</div><button class="x" data-act="pdel" data-id="'+p.id+'" aria-label="Remove '+esc(p.n)+'">×</button></div>'});
@@ -1173,6 +1216,9 @@ function sheetView(){if(!S.sheet||(S.sheet==='cal'&&!INART&&!FEED))return '';let
   else if(S.sheet==='add'){small=true;title='Add to a list';sub='Type it, tap Add. It’s on every screen right away.';body=addView()}
   else if(S.sheet==='group'){small=true;const g=jobGroups(S.sel).find(x=>x.key===S.group);title=g?g.t:'Checklist';sub=S.sel===S.today?'Today':parse(S.sel).toLocaleDateString(undefined,{weekday:'long'});body=groupView()}
   else if(S.sheet==='mail'){small=true;title='Email “'+LSHORT[S.mail.k]+'”';sub='Pick who gets it';body=mailView()}
+  else if(S.sheet==='timer'){small=true;title=S.tdraft&&S.tdraft.id?'Name this timer':'New timer';sub=S.tdraft&&S.tdraft.id?'It shows by the countdown and when it rings':'Pick a name and how long';body=timerView()}
+  else if(S.sheet==='person'){const p=personById(S.person),x=p?personStats()[p.id]:null;title=p?p.n:'Family';sub='Today'+(x&&x.of?', '+x.n+' of '+x.of+' done':'');body=personView()}
+  else if(S.sheet==='news'){small=true;title='What’s new';sub='On the kitchen hub';body=newsView()}
   else {title='Settings';small=true;body=settingsView()}
   return '<div class="scrim" data-act="close"></div><div class="sheet glass'+(small?' small':'')+'" tabindex="-1" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><header class="sheethead"><h2>'+esc(title)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h2>'+nav+'<button class="iconbtn" data-act="close" aria-label="Close">×</button></header><div class="sheetbody" id="sheetbody">'+body+'</div></div>'}
 const overnight=()=>{const h=new Date().getHours();return S.darkOn&&(h>=23||h<5)};
@@ -1209,7 +1255,7 @@ function render(){
   if(txt){val=a.value;try{ss=a.selectionStart;se=a.selectionEnd}catch(e){}}
   const sb=document.getElementById('sheetbody'),sbTop=sb?sb.scrollTop:0,prevSheet=S._lastSheet;
   app.innerHTML='<main class="home">'+glanceView()+'<div class="act">'+nowPane()+'<div class="cards">'+mealCard()+nextCard()+'</div></div></main>'+dock()+sheetView()+
-    (S.err?'<div class="status glass" role="status">'+esc(S.err)+'</div>':battNote())+(S.undo?'<div class="status glass undo" role="status">'+(S.undo.verb||'Checked')+' “'+esc(S.undo.label.slice(0,48))+'”<button data-act="undo">Undo</button></div>':'')+(S.amb?ambientView():'')+(S.dim&&!S.amb?'<div class="dimmer" aria-hidden="true"></div>':'')+(S.ring?'<div class="alarm" data-act="ringoff" role="alertdialog" aria-label="Timer done"><b>Time’s up</b><span>'+esc(S.ring.label)+'</span><em>Tap anywhere to stop</em></div>':'');
+    (S.err?'<div class="status glass" role="status">'+esc(S.err)+'</div>':battNote())+(S.undo?'<div class="status glass undo" role="status">'+(S.undo.verb||'Checked')+' “'+esc(S.undo.label.slice(0,48))+'”<button data-act="undo">Undo</button></div>':S.news&&!S.sheet?'<button class="status glass news" data-act="news">What’s new ›</button>':'')+(S.amb?ambientView():'')+(S.dim&&!S.amb?'<div class="dimmer" aria-hidden="true"></div>':'')+(S.ring?'<div class="alarm" data-act="ringoff" role="alertdialog" aria-label="Timer done"><b>Time’s up</b><span>'+esc(S.ring.label)+'</span><em>Tap anywhere to stop</em></div>':'');
   calSheet();
   requestAnimationFrame(()=>{fitLists();fitChips()});
   const nb=document.getElementById('sheetbody');if(nb&&prevSheet===S.sheet+S.sel)nb.scrollTop=sbTop;S._lastSheet=S.sheet+S.sel;
@@ -1267,6 +1313,12 @@ function onAct(b){const a=b.dataset.act,ds=b.dataset;
     if(t){S.undo={act:'trestore',ds:{id:t.id,end:String(t.end),label:t.label},label:t.label,verb:'Cancelled'};clearTimeout(S._undoT);S._undoT=setTimeout(()=>{S.undo=null;render()},6000)}render();return}
   if(a==='trestore'){if(+ds.end>Date.now())S.timers.push({id:ds.id,end:+ds.end,label:ds.label});saveTimers();render();return}
   if(a==='ringoff'){S.ring=null;render();return}
+  if(a==='tnew'){S.tdraft={id:null,name:'',m:10};openSheet('timer');return}
+  if(a==='tname'){const t=S.timers.find(tm=>tm.id===ds.id);if(!t)return;S.tdraft={id:t.id,name:/-minute timer/.test(t.label)?'':t.label};openSheet('timer');focusIn('tname-in',true);return}
+  if(a==='tpick'){keepTyped();S.tdraft.name=S.tdraft.name===ds.v?'':ds.v;render();return}
+  if(a==='tmin'){keepTyped();S.tdraft.m=+ds.m;render();return}
+  if(a==='person'){S.person=ds.id;openSheet('person');return}
+  if(a==='news'){S.news=false;lsSet('hub-news-seen',NEWS.id);openSheet('news');return}
   if(a==='dimset'){S.dimOn=ds.v==='1';lsSet('hub-dim',ds.v);render();return}
   if(a==='scan'){openScan();return}
   if(a==='scanclose'){closeScan();return}
@@ -1306,6 +1358,10 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.sheet){closeSheet
 document.addEventListener('submit',e=>{const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();
   const k=f.dataset.form;
   if(k==='qedit'){qsave(document.getElementById('qinput').value);return}
+  if(k==='timer'){const d=S.tdraft;if(!d)return;const nm=document.getElementById('tname-in').value.trim().slice(0,30);
+    if(d.id)S.timers.forEach(tm=>{if(tm.id===d.id&&nm)tm.label=nm});
+    else S.timers.push({id:uid(),end:Date.now()+d.m*60000,mins:d.m,label:nm||(d.m+'-minute timer')});
+    saveTimers();S.tdraft=null;closeSheet();return}
   if(k==='padd'){const n=document.getElementById('p-name').value.trim().slice(0,24);if(!n)return;const ps=people(),used=ps.map(p=>p.c),c=Object.keys(PCOL).find(x=>!used.includes(x))||'sage';
     patch('settings/house',{people:ps.concat([{id:uid(),n,c}])},{});setTimeout(()=>focusIn('p-name'),30);return}
   if(k==='feed'){const v=document.getElementById('feed-url').value.trim();if(v&&!/^https:\/\//.test(v)){S.err='The feed link should start with https://';render();return}applyFeed(v);return}
@@ -1328,6 +1384,9 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 (function(){const st=document.getElementById('stars');let seed=7;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;let h='';
   for(let i=0;i<90;i++){const o=(.25+rnd()*.75).toFixed(2),z=rnd()<.12?3:2;h+='<i style="left:'+(rnd()*100).toFixed(2)+'%;top:'+(rnd()*72).toFixed(2)+'%;opacity:'+o+';width:'+z+'px;height:'+z+'px"></i>'}st.innerHTML=h})();
 S._ri=routineIdx(new Date());
+// the "What's new" note stays until it's tapped, or for a day after it first appears
+(function(){if(lsGet('hub-news-seen','')===NEWS.id)return;const f=lsGet('hub-news-first','').split(':');
+  if(f[0]!==NEWS.id){lsSet('hub-news-first',NEWS.id+':'+Date.now());S.news=true}else S.news=Date.now()-(+f[1]||0)<864e5})();
 paintSky();render();setInterval(tick,15000);setInterval(timerTick,1000);
 loadWx();setInterval(loadWx,20*60*1000);
 const b64u=t=>Uint8Array.from(atob(t.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
@@ -1342,7 +1401,8 @@ async function pullProfile(){const key=lsGet('hub-pkey','');if(!key||!(window.cr
 if(!INART&&location.protocol==='https:'){let built=null;pullProfile();const chk=async()=>{try{const r=await fetch('version.txt',{cache:'no-store'});if(!r.ok)return;const v=(await r.text()).trim();
     if(built===null){built=v;return}
     if(v!==built&&!S.sheet&&!S.timers.length&&!S.ring&&!scanStream&&Date.now()-lastAct>120000&&!(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)))location.reload()}catch(e){}};
-  chk();setInterval(()=>{chk();pullProfile()},10*60*1000)}
+  // a new version is a tiny file to check, so look every 2 minutes; it still waits for 2 idle minutes before reloading
+  chk();setInterval(chk,2*60*1000);setInterval(pullProfile,10*60*1000)}
 startCalendar();
 if(!INART){loadFeed();setInterval(()=>{if(document.visibilityState==='visible')loadFeed()},15*60*1000)}
 if(!INART)setInterval(()=>{const f=document.getElementById('calframe');if(f&&document.visibilityState==='visible')f.src=embedUrl()},30*60*1000);
@@ -1357,6 +1417,5 @@ if(!INART)setInterval(()=>{const f=document.getElementById('calframe');if(f&&doc
 </script>
 
 <script>if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(function(){});</script>
-<div id="ota-test" onclick="this.remove()" style="position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:99999;padding:14px 26px;border-radius:999px;background:rgba(20,24,32,.88);color:#fff;font:600 18px var(--ui),system-ui,sans-serif;white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,.35)">Update test from Claude, sent 10:31 pm Sat. Tap to dismiss.</div>
 </body>
 </html>
