@@ -605,7 +605,7 @@ function applyProfile(x){P=x;const sc=P.sched,prev=d=>(d+6)%7;LOC=P.loc;
   if(sc.cleaner>=0)ANCHORS.push({k:'cleaner',cat:'clean',days:[prev(sc.cleaner),sc.cleaner],title:P.names.cleaner+' prep',when:[DN[prev(sc.cleaner)]+' night',DN[sc.cleaner]],note:P.cleanerNote,items:lines(P.cleanerPrep,'c')});
   if(sc.clothes>=0)ANCHORS.push({k:'clothes',cat:'clothes',days:[sc.clothes],title:'Kids’ clothing check',when:['This week'],note:P.clothesNote,items:lines(P.clothes,'k')});
   const g=ANCHORS[0].items,ci=g.findIndex(x=>/curb/i.test(x[1]));CURB=g.length?g[ci<0?g.length-1:ci][0]:'';}
-const LISTS=[{k:'buy',title:'Running out / need to buy',ph:'e.g. paper towels, sandwich bags'},{k:'outgrown',title:'Outgrown + sizes needed',ph:'e.g. 3T pants, size 9 rain boots'},{k:'forManager',title:'Notes for the house manager',ph:'e.g. pharmacy pickup Thursday'}];
+const LISTS=[{k:'buy',title:'Running out / need to buy',ph:'e.g. paper towels, sandwich bags'},{k:'todo',title:'To do',ph:'e.g. call the plumber'},{k:'outgrown',title:'Outgrown + sizes needed',ph:'e.g. 3T pants, size 9 rain boots'},{k:'forManager',title:'Notes for the house manager',ph:'e.g. pharmacy pickup Thursday'}];
 const CATC={bins:'var(--bins)',clean:'var(--clean)',hm:'var(--hm)',prep:'var(--prep)',clothes:'var(--clothes)',cal:'var(--ink)',hol:'var(--faint)',day:'var(--ink)',laundry:'#BFE1FF'};
 const CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="#0E2A1C" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
@@ -781,11 +781,27 @@ function feedNorm(list){const out=[];(Array.isArray(list)?list:[]).forEach(e=>{i
   else{const st=new Date(e.start),en=e.end?new Date(e.end):null;if(isNaN(st))return;out.push({title,allDay:false,day:iso(st),startMs:st.getTime(),endMs:en&&!isNaN(en)?en.getTime():null,location:loc,cat})}});return out}
 async function loadFeed(){if(!FEED)return;
   try{const r=await fetch(FEED+(FEED.includes('?')?'&':'?')+'days=8',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();
-    if(j.error){CAL.state='feedbad';CAL.err=j.error}else{CAL.events=feedNorm(j.events);CAL.state='ok';CAL.err=null;CAL.at=j.at=Date.now();lsSet('hub-feed-cache',JSON.stringify(j))}}
+    if(j.error){CAL.state='feedbad';CAL.err=j.error}else{CAL.events=feedNorm(j.events);CAL.state='ok';CAL.err=null;CAL.at=j.at=Date.now();
+      if(j.inboxStatus)INBOX.status=j.inboxStatus;if(Array.isArray(j.inbox))applyInbox(j.inbox);delete j.inbox;lsSet('hub-feed-cache',JSON.stringify(j))}}
   catch(e){const c=(()=>{try{return JSON.parse(lsGet('hub-feed-cache','null'))}catch(_){return null}})();
     if(c&&c.events&&CAL.state!=='ok'){CAL.events=feedNorm(c.events);CAL.state='ok';CAL.at=c.at||null}CAL.err='offline';if(CAL.state==='loading')CAL.state='error'}
   render()}
 const CAL={state:INART||lsGet('hub-feed','')?'loading':'embed',events:[],err:null,at:null};
+/* ---- email inbox: the hub's Google script turns emails into list items and meal plans, and queues them in the feed.
+   Each one is applied once (the tablet remembers its id), and only after the lists have loaded, so nothing is overwritten. */
+const INBOX={status:(()=>{try{return (JSON.parse(lsGet('hub-feed-cache','null'))||{}).inboxStatus||null}catch(e){return null}})(),pending:[],listsReady:false};
+function applyInbox(items){let seen=[];try{seen=JSON.parse(lsGet('hub-inbox-seen','[]'))||[]}catch(e){}
+  INBOX.pending=items.filter(x=>x&&x.id&&!seen.includes(x.id)&&!INBOX.pending.some(p=>p.id===x.id)).concat(INBOX.pending);
+  if(!store||!INBOX.listsReady||!INBOX.pending.length)return;
+  const lists=clone(listsData()),touched={},applied=INBOX.pending;let n=0;
+  applied.forEach(x=>{
+    if(x.kind==='list'&&LSHORT[x.list]){const L=lists[x.list]=lists[x.list]||[];if(!L.some(i=>i.id===x.id)){L.push({id:x.id,t:String(x.t||'').slice(0,200),done:false,from:String(x.from||'').slice(0,40)});touched[x.list]=1;n++}}
+    else if(x.kind==='plan'&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)&&['dinner','lunch','must'].includes(x.field)){const m=mondayOf(x.date);
+      patch('weeks/'+m,{plan:{[DAYS[dowOf(x.date)].k]:{[x.field]:String(x.v||'').slice(0,200)}}},weekBase(m));n++}
+    seen.push(x.id)});
+  const lp={};Object.keys(touched).forEach(k=>lp[k]=lists[k]);if(Object.keys(lp).length)patch('lists/house',lp,{});
+  INBOX.pending=[];lsSet('hub-inbox-seen',JSON.stringify(seen.slice(-500)));
+  if(n){const who=[...new Set(applied.filter(x=>x.from).map(x=>x.from))].slice(0,2).join(' and ');S.toast=(who?who+' emailed ':'Emailed: ')+n+' new item'+(n===1?'':'s')+' to the hub';clearTimeout(S._toastT);S._toastT=setTimeout(()=>{S.toast=null;render()},60000);render()}}
 // After a failed refresh, say how old the calendar is, so old appointments never pass for current ones.
 // One missed refresh is normal; only flag it once the last good copy is over 45 minutes old.
 function calAge(){if(!FEED||CAL.state!=='ok'||CAL.err!=='offline')return '';if(!CAL.at)return 'calendar offline';return Date.now()-CAL.at>45*60000?'calendar as of '+fmtTime(CAL.at):''}
@@ -1082,7 +1098,7 @@ function qeditView(){const q=S.q,D=DAYS[dowOf(q.d)],m=mondayOf(q.d),cur=(((weekD
   return '<form class="qform" data-form="qedit"><input type="text" id="qinput" value="'+esc(cur)+'" placeholder="'+ph+'" autocomplete="off" enterkeyhint="done">'+
     (sug.length?'<div><div class="eyebrow" style="margin-bottom:8px">'+(q.k==='dinner'?'Recent and easy':'Recent')+'</div><div class="qchips">'+sug.map(x=>'<button type="button" class="chip" data-act="qpick" data-v="'+esc(x)+'">'+esc(x)+'</button>').join('')+'</div></div>':'')+
     '<div class="qbtns">'+(cur?'<button type="button" class="pillbtn" data-act="qclear">Clear</button>':'')+'<button type="button" class="pillbtn" data-act="qweek">Plan the whole week</button><button type="submit" class="primary">Save</button></div></form>'}
-const LSHORT={buy:'Need to buy',outgrown:'Outgrown + sizes',forManager:'For the house manager'};
+const LSHORT={buy:'Need to buy',todo:'To do',outgrown:'Outgrown + sizes',forManager:'For the house manager'};
 function addView(){const k=S.addDest;return '<div class="chips">'+LISTS.map(L=>'<button class="chip" aria-pressed="'+(k===L.k)+'" data-act="adddest" data-l="'+L.k+'">'+LSHORT[L.k]+'</button>').join('')+'</div>'+listCard(LISTS.find(L=>L.k===k))}
 
 /* ---- email a list ---- */
@@ -1127,7 +1143,8 @@ function timerView(){const d=S.tdraft||{};
 function keepTyped(){const n=document.getElementById('tname-in');if(n&&S.tdraft)S.tdraft.name=n.value}
 
 /* ---- what's new: shown once per release, until tapped or for a day ---- */
-const NEWS={id:'2026-11-22-radar',items:[
+const NEWS={id:'2026-11-22-inbox',items:[
+  ['A To do list.','In Lists, next to Need to buy. Once the hub’s email address is set up, emailed groceries, to-dos and meals land here by themselves.'],
   ['Live radar.','Tap Radar next to Hours and 5 days for the National Weather Service radar near you, moving through the last hour. Switch to Country for the whole US.'],
   ['Name your timers.','Tap + next to the timer buttons to pick a name and any length, from 1 minute to 90. Tap a running timer’s name to rename it.'],
   ['See one person’s day.','Tap a family member’s name on the home screen for just their jobs and appointments today.'],
@@ -1163,7 +1180,7 @@ function planView(){const mon=mondayOf(S.sel),wk=weekData(mon),plan=wk.plan||{},
 function listCard(L){const items=listsData()[L.k]||[],nDone=items.filter(x=>x.done).length;
   return '<section class="card"><header><div><h3>'+esc(L.title)+'</h3></div><span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="pillbtn sm" data-act="mail" data-l="'+L.k+'">Email</button>'+(nDone?'<button class="pillbtn" data-act="lclear" data-l="'+L.k+'">Clear '+nDone+' done</button>':'<span class="count">'+items.length+'</span>')+'</span></header>'+
    '<form class="addrow" data-form="'+L.k+'"><input type="text" id="add-'+L.k+'" aria-label="Add to '+esc(L.title)+'" placeholder="'+esc(L.ph)+'" autocomplete="off"><button type="submit">Add</button></form><div class="list">'+
-   (items.length?items.map(x=>'<div class="li">'+ck(x.done,'ltog','data-l="'+L.k+'" data-id="'+x.id+'"',x.t)+'<button class="x" data-act="ldel" data-l="'+L.k+'" data-id="'+x.id+'" aria-label="Remove '+esc(x.t)+'">×</button></div>').join(''):'<div class="empty">Nothing here yet.</div>')+'</div></section>'}
+   (items.length?items.map(x=>'<div class="li">'+ck(x.done,'ltog','data-l="'+L.k+'" data-id="'+x.id+'"',x.t,x.from?'Emailed by '+x.from:'')+'<button class="x" data-act="ldel" data-l="'+L.k+'" data-id="'+x.id+'" aria-label="Remove '+esc(x.t)+'">×</button></div>').join(''):'<div class="empty">Nothing here yet.</div>')+'</div></section>'}
 function hmView(){const mon=mondayOf(S.sel),wk=weekData(mon),visits=(wk.visits||[]).slice().sort(),log=wk.visitLog||{};
   let h='<section class="card c-hm"><header><div><h3>Her visit days</h3><div class="note">Pick two. About 5–6 hours each; meal prep fits best on her days.</div></div><span class="count">'+visits.length+'/2</span></header><div class="chips">'+
     DAYS.map((D,i)=>'<button class="chip" aria-pressed="'+visits.includes(i)+'" data-act="visit" data-i="'+i+'">'+D.name.slice(0,3)+'</button>').join('')+'</div></section><div class="grid">';
@@ -1172,8 +1189,9 @@ function hmView(){const mon=mondayOf(S.sel),wk=weekData(mon),visits=(wk.visits||
     h+=card('Visit '+(idx+1)+' · '+DAYS[w].name,'Always on her list',MGR,L.done,'tmgr',id=>'data-m="'+mon+'" data-v="'+vk+'" data-id="'+id+'"','c-hm').replace(/<\/section>$/,'')+
      '<div class="field"><label for="proj-'+vk+'">Project focus</label><input type="text" id="proj-'+vk+'" data-in="weeks/'+mon+'" data-key="visitLog.'+vk+'.project" value="'+esc(L.project||'')+'" placeholder="Closet, baby toys, holiday pull-out"></div>'+
      '<div class="field"><label for="else-'+vk+'">Anything else, to buy or flag</label><textarea id="else-'+vk+'" data-in="weeks/'+mon+'" data-key="visitLog.'+vk+'.notes" placeholder="Notes for this visit">'+esc(L.notes||'')+'</textarea></div></section>'});
-  return h+listCard(LISTS[2])+'</div>'}
-function listsView(){return '<div class="grid">'+LISTS.map(listCard).join('')+'</div>'}
+  return h+listCard(LISTS.find(L=>L.k==='forManager'))+'</div>'}
+function listsView(){const a=INBOX.status&&INBOX.status.address;
+  return (a?'<p class="note">Email the hub at <b>'+esc(a)+'</b>, one thing per line, like <b>Groceries: milk, eggs</b> or <b>To do: call the plumber</b>.</p>':'')+'<div class="grid">'+LISTS.map(listCard).join('')+'</div>'}
 function calView(){if(!INART&&!FEED)return '';
   if(CAL.state==='approval_required'||CAL.state==='not_in_manifest'||CAL.state==='consent_required')return '<p class="empty">This page needs your OK to read Google Calendar.</p><div><button class="pillbtn" data-act="calallow">Allow Google Calendar</button></div>';
   if(CAL.state!=='ok')return '<p class="empty">'+esc(CALMSG[CAL.state]||CALMSG.error)+'</p>';
@@ -1222,6 +1240,9 @@ function settingsView(){return '<section class="card"><div class="setrow"><div><
   '<div class="setrow"><div><h3>Overnight rest</h3><div class="note">From 11 pm to 5 am the screen goes black with a dim clock that slowly moves, to protect AMOLED screens from burn-in.</div></div><div class="seg"><button data-act="dark" data-v="0" aria-pressed="'+(!S.darkOn)+'">Off</button><button data-act="dark" data-v="1" aria-pressed="'+S.darkOn+'">On</button></div></div>'+
   (INART?'':'<div class="setrow" style="flex-direction:column;align-items:stretch"><div><h3>Calendar feed</h3><div class="note">Paste the link from your calendar feed script (see the setup guide). Works with Google, Outlook and iCloud calendars, with no sign-in. Easiest: open <b>'+esc(location.origin+location.pathname.replace(/[^/]*$/,''))+'qr.html</b> on your phone or computer, paste the link there, and scan the code here.</div></div><div><button class="pillbtn" data-act="scan">Scan the link with the camera</button></div><form class="calfield" data-form="feed"><input type="text" id="feed-url" value="'+esc(lsGet('hub-feed',''))+'" placeholder="https://script.google.com/macros/s/\u2026/exec?key=\u2026" autocomplete="off" inputmode="url"><button type="submit" class="primary">Save</button></form>'+(FEED?'<div class="note">'+(CAL.state==='ok'?'Connected \u2713 '+CAL.events.length+' events this week':esc(CALMSG[CAL.state]||'Checking\u2026'))+'</div>':'')+'</div>'+
   '<div class="setrow" style="flex-direction:column;align-items:stretch"><div><h3>Or: Google Calendar embed</h3><div class="note">Your Gmail address shows your main calendar. Add <b>en.usa#holiday@group.v.calendar.google.com</b> for US holidays. Separate addresses with commas.</div></div><form class="calfield" data-form="cals"><input type="text" id="cal-ids" value="'+esc(lsGet('hub-cals',''))+'" placeholder="you@gmail.com, en.usa#holiday@group.v.calendar.google.com" autocomplete="off" inputmode="email"><button type="submit" class="primary">Save</button></form></div>')+
+  (INBOX.status&&INBOX.status.address?'<div class="setrow"><div><h3>Email inbox</h3><div class="note">Email <b>'+esc(INBOX.status.address)+'</b> to add groceries, to-dos, meals and calendar events. '+
+    (INBOX.status.lastOk?(Date.now()-INBOX.status.lastOk>20*60000?'<b style="color:var(--warn)">Not checked since '+esc(fmtTime(INBOX.status.lastOk))+'.</b> Open the hub’s Google script and run setup again.':'Last checked '+esc(fmtTime(INBOX.status.lastOk))+'.'):'Waiting for the first check.')+
+    (INBOX.status.lastError?' Last problem: '+esc(INBOX.status.lastError):'')+'</div></div></div>':'')+
   '<div class="setrow"><div><h3>Keep the screen on</h3><div class="note">Stops the tablet from dimming while the hub is open.</div></div><button class="pillbtn" data-act="wake">'+(S.wake?'On ✓':'Turn on')+'</button></div>'+
   '<div class="setrow"><div><h3>Saving</h3><div class="note">'+(shared?'Checkmarks and lists sync to your Claude account, so your phone sees the same thing.':'Checkmarks and lists are saved on this device.')+'</div></div></div>'+
   '<div class="setrow"><div><h3>Weather location</h3><div class="note">ZIP '+(LOC?LOC.label:'not set')+', Open-Meteo forecast'+(WX&&WX.fetchedAt?', updated '+fmtTime(WX.fetchedAt):'')+'.</div></div></div></section>'}
@@ -1279,7 +1300,7 @@ function render(){
   if(txt){val=a.value;try{ss=a.selectionStart;se=a.selectionEnd}catch(e){}}
   const sb=document.getElementById('sheetbody'),sbTop=sb?sb.scrollTop:0,prevSheet=S._lastSheet;
   app.innerHTML='<main class="home">'+glanceView()+'<div class="act">'+nowPane()+'<div class="cards">'+mealCard()+nextCard()+'</div></div></main>'+dock()+sheetView()+
-    (S.err?'<div class="status glass" role="status">'+esc(S.err)+'</div>':battNote())+(S.undo?'<div class="status glass undo" role="status">'+(S.undo.verb||'Checked')+' “'+esc(S.undo.label.slice(0,48))+'”<button data-act="undo">Undo</button></div>':S.news&&!S.sheet?'<button class="status glass news" data-act="news">What’s new ›</button>':'')+(S.amb?ambientView():'')+(S.dim&&!S.amb?'<div class="dimmer" aria-hidden="true"></div>':'')+(S.ring?'<div class="alarm" data-act="ringoff" role="alertdialog" aria-label="Timer done"><b>Time’s up</b><span>'+esc(S.ring.label)+'</span><em>Tap anywhere to stop</em></div>':'');
+    (S.err?'<div class="status glass" role="status">'+esc(S.err)+'</div>':S.toast?'<button class="status glass" data-act="open" data-s="lists" style="border:0;color:inherit;font:inherit;font-size:14px;cursor:pointer;min-height:44px">'+esc(S.toast)+' ›</button>':battNote())+(S.undo?'<div class="status glass undo" role="status">'+(S.undo.verb||'Checked')+' “'+esc(S.undo.label.slice(0,48))+'”<button data-act="undo">Undo</button></div>':S.news&&!S.sheet?'<button class="status glass news" data-act="news">What’s new ›</button>':'')+(S.amb?ambientView():'')+(S.dim&&!S.amb?'<div class="dimmer" aria-hidden="true"></div>':'')+(S.ring?'<div class="alarm" data-act="ringoff" role="alertdialog" aria-label="Timer done"><b>Time’s up</b><span>'+esc(S.ring.label)+'</span><em>Tap anywhere to stop</em></div>':'');
   calSheet();
   requestAnimationFrame(()=>{fitLists();fitChips()});
   // a redraw of a sheet that's already open keeps its scroll and doesn't replay the slide-up
@@ -1433,14 +1454,15 @@ if(!INART&&location.protocol==='https:'){let built=null;pullProfile();const chk=
   // a new version is a tiny file on a free site, so look every 2 minutes; it still waits for 2 idle minutes before reloading
   chk();setInterval(chk,2*60*1000);setInterval(pullProfile,10*60*1000)}
 startCalendar();
-if(!INART){loadFeed();setInterval(()=>{if(document.visibilityState==='visible')loadFeed()},15*60*1000)}
+// every 5 minutes: the calendar, plus anything emailed to the hub
+if(!INART){loadFeed();setInterval(()=>{if(document.visibilityState==='visible')loadFeed()},5*60*1000)}
 if(!INART)setInterval(()=>{const f=document.getElementById('calframe');if(f&&document.visibilityState==='visible')f.src=embedUrl()},30*60*1000);
 (async()=>{
   let db=null;try{db=INART?await window.claude.use('db'):null}catch(e){db=null}
   store=db||makeLocal();shared=!!db;S.ready=true;syncSubs();watchBattery();
   store.collection('prep').onSnapshot(s=>{s.docs.forEach(d=>{if(!T.has('prep/'+d.id))C['prep/'+d.id]=clone(d.data())});render()},onErr);
   store.doc('settings/house').onSnapshot(s=>{if(s.exists&&!T.has('settings/house'))C['settings/house']=clone(s.data());render()},onErr);
-  store.doc('lists/house').onSnapshot(s=>{if(s.exists&&!T.has('lists/house'))C['lists/house']=clone(s.data());render()},onErr);
+  store.doc('lists/house').onSnapshot(s=>{if(s.exists&&!T.has('lists/house'))C['lists/house']=clone(s.data());if(!INBOX.listsReady){INBOX.listsReady=true;applyInbox([])}render()},onErr);
   render()})();
 })();
 </script>
