@@ -258,7 +258,7 @@ input::placeholder,textarea::placeholder{color:var(--faint)}
 .chip[aria-pressed="true"]{background:var(--hm);color:#101a3a}
 .addrow{display:flex;gap:8px}
 .addrow button{flex:none;border:0;background:#fff;color:#101a3a;border-radius:14px;padding:0 18px;font-weight:700;cursor:pointer;min-height:44px}
-.li{display:flex;align-items:center;gap:4px}
+.li{display:flex;align-items:center;gap:4px;touch-action:pan-y;transition:transform .18s ease,opacity .18s ease}
 .li .ck{flex:1}
 .x{flex:none;width:48px;height:48px;border:0;background:transparent;border-radius:12px;cursor:pointer;color:var(--faint);font-size:20px}
 .x:hover{background:rgba(255,255,255,.1);color:var(--warn)}
@@ -568,14 +568,68 @@ button.pill:active{transform:scale(.97)}
 .radar img.us{width:900px}
 .radar .note{text-align:center}
 .sheet .seg{flex:none}
-/* ---------- calendar-first home layout (preview) ---------- */
-.cg{justify-content:flex-start}
-.cg .g-time{font-size:clamp(84px,10.5vw,122px)}
-.cg-wx{display:flex;align-items:center;gap:10px;border:0;background:none;color:var(--ink);font:inherit;padding:4px 0;margin-top:12px;cursor:pointer;text-align:left;min-height:48px;flex:none;text-shadow:inherit}
-.cg-wx svg{width:30px;height:30px;flex:none;filter:saturate(0) brightness(1.7)}
-.cg-wx b{font-family:"Outfit",var(--ui);font-weight:300;font-size:30px;line-height:1}
-.cg-wx span{font-size:17px;color:var(--muted)}
-.cg-wx i{font-style:normal;color:var(--faint);font-size:20px}
+/* ---------- Home board layout (preview): header, then calendar and lists in two equal panes ---------- */
+.board{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:14px 16px;max-width:1500px;margin:0 auto;
+  height:calc(100dvh - 100px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));min-height:560px;transform:translate(var(--px,0px),var(--py,0px));transition:transform 3s ease}
+.bhead{grid-column:1/-1;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;min-width:0;text-shadow:0 1px 2px rgba(8,20,50,.35),0 0 24px rgba(8,20,50,.3)}
+.bclock{display:flex;align-items:flex-end;gap:18px;min-width:0;flex:1 1 auto}
+.bhead .g-time{font-size:84px;margin:0 0 -4px -4px;flex:none}
+.bday{display:flex;flex-direction:column;gap:4px;padding-bottom:6px;min-width:0}
+.bday b{font-size:21px;font-weight:600}
+.bday span{font-size:18px;line-height:1.3;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bside{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding-bottom:6px;flex:none;max-width:56%}
+.bwx,.bbtn{display:inline-flex;align-items:center;gap:8px;min-height:52px;padding:0 14px;border:0;border-radius:14px;color:var(--ink);font:inherit;cursor:pointer;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+.bwx svg{width:30px;height:30px;filter:saturate(0) brightness(1.7)}
+.bwx b{font-family:"Outfit",var(--ui);font-weight:300;font-size:30px;line-height:1}
+.bwx span{font-size:16px;color:var(--muted)}
+.bbtn{font-size:16px;font-weight:600}
+.bbtn svg{width:22px;height:22px}
+.bpill{display:inline-flex;align-items:center;gap:8px;min-height:52px;padding:0 4px 0 14px;border-radius:14px;background:rgba(255,213,138,.14);box-shadow:inset 0 0 0 1px rgba(255,213,138,.45)}
+.bpill b{font-family:"Outfit",var(--ui);font-weight:400;font-size:26px;color:#FFD58A;font-variant-numeric:tabular-nums}
+.bpill span,.bpill .tname{font-size:16px;color:var(--ink);min-height:44px;display:inline-flex;align-items:center}
+.bpill .tname{border:0;background:none;padding:0 4px;font:inherit;font-size:16px;color:var(--ink);cursor:pointer;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bx{flex:none;width:48px;height:48px;border:0;border-radius:12px;background:none;color:var(--faint);font-size:22px;line-height:1;cursor:pointer}
+.bx:active{background:rgba(255,255,255,.12);color:var(--ink)}
+.bcal,.blist{padding:18px 20px 14px;display:flex;flex-direction:column;min-height:0;min-width:0}
+.bh{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none;min-height:48px}
+.bh h2{font-family:"Outfit",var(--ui);font-weight:300;font-size:28px;letter-spacing:-.01em;display:flex;align-items:baseline;gap:10px}
+.bh h2 em{font-style:normal;font-family:var(--ui);font-size:17px;font-weight:600;color:var(--muted)}
+.bact{display:flex;gap:4px}
+.blink{border:0;background:none;color:var(--muted);font:inherit;font-size:16px;font-weight:600;min-height:48px;padding:0 12px;border-radius:12px;cursor:pointer}
+.blink.add{color:var(--ink);background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+.bcal .agenda2{margin-top:4px}
+.bcal .ag-day{font-size:21px;margin-top:14px;color:var(--muted)}
+.bcal .ag-day:first-child{margin-top:2px}
+.bcal .ag-row{grid-template-columns:4px 4.9em minmax(0,1fr) auto;gap:12px;font-size:19px;padding:7px 0}
+.bcal .ag-row .dot{width:4px;height:auto;align-self:stretch;margin:2px 0;border-radius:2px;background:var(--pb,var(--c,#fff))}
+.bcal .ag-row .tm{font-size:17px}
+.bcal .ag-row .tt small{font-size:16px}
+.bdin{flex:none;display:flex;align-items:baseline;gap:10px;width:100%;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;text-align:left;padding:12px 0 2px;margin-top:6px;cursor:pointer;min-height:52px}
+.bdin span{font-size:17px;color:var(--muted);flex:none}
+.bdin b{font-size:19px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bdin b.empty{color:var(--muted);font-weight:500}
+.bdin i{font-style:normal;color:var(--faint);margin-left:auto}
+.bsec{display:flex;flex-direction:column;min-height:0}
+.bsec.todo{flex:0 1 auto;max-height:60%}
+.bsec.routine{flex:0 1 auto;max-height:42%}
+.bsec.buy{flex:1 1 0;min-height:30%;border-top:1px solid var(--line);margin-top:6px;padding-top:6px}
+.grid2 .brow .ck small{display:none}
+.bnone{font-size:17px;color:var(--faint);padding:6px 4px 10px}
+.brows{position:relative;display:flex;flex-direction:column;overflow:hidden;min-height:0;flex:1 1 auto}
+.brows.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10px;align-content:start}
+.brow{display:flex;align-items:center;min-width:0;touch-action:pan-y;transition:transform .18s ease,opacity .18s ease;border-bottom:1px solid rgba(255,255,255,.08)}
+.brow[hidden]{display:none}
+.brow .ck{flex:1;min-width:0;min-height:56px;font-size:19px;align-items:center;padding:8px 4px}
+.brow .ck .lbl{padding-top:0;font-weight:500;overflow:hidden;text-overflow:ellipsis}
+.brow .ck small{font-size:15px}
+.grid2 .brow .ck{font-size:18px;min-height:52px}
+.bmore{position:absolute;right:0;bottom:0;border:0;background:none;color:var(--muted);font:inherit;font-size:16px;font-weight:600;min-height:34px;padding:0 6px;cursor:pointer}
+.bempty{flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:0 6px 20px}
+.bempty b{font-family:"Outfit",var(--ui);font-weight:300;font-size:30px}
+.bempty span{font-size:18px;line-height:1.4;color:var(--muted);max-width:30em}
+.bfoot{flex:none;display:flex;flex-wrap:wrap;gap:6px;padding-top:10px}
+.bfoot .jc em{font-style:normal;color:var(--muted)}
+@media (max-width:980px),(orientation:portrait){.board{grid-template-columns:1fr;height:auto}.bhead{flex-wrap:wrap}.bside{max-width:100%;justify-content:flex-start}.brows{overflow:visible}}
 .agenda2{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;border:0;background:none;color:inherit;font:inherit;text-align:left;padding:0;margin-top:16px;cursor:pointer;width:100%;text-shadow:inherit}
 .ag-day{font-family:"Outfit",var(--ui);font-weight:300;font-size:22px;line-height:1.2;margin:12px 0 2px;flex:none}
 .ag-day:first-child{margin-top:0}
@@ -818,6 +872,11 @@ const CAL={state:INART||lsGet('hub-feed','')?'loading':'embed',events:[],err:nul
 const INBOX={status:(()=>{try{return (JSON.parse(lsGet('hub-feed-cache','null'))||{}).inboxStatus||null}catch(e){return null}})(),pending:[],listsReady:false};
 // one-time cleanup: the first test email (2026-11-22) turned its signature into six grocery items
 const JUNK=['1a203b4304dedefa:1','1a203b4304dedefa:2','1a203b4304dedefa:3','1a203b4304dedefa:4','1a203b4304dedefa:5','1a203b4304dedefa:6'];
+// ticked items clear themselves a day after they were ticked, so lists never pile up
+function purgeDone(){if(!store||!INBOX.listsReady)return;const L=listsData(),now=Date.now(),p={};
+  LISTS.forEach(x=>{const items=L[x.k]||[];let ch=false;const keep=items.filter(i=>{if(!i.done)return true;if(!i.doneAt){ch=true;i.doneAt=now;return true}if(now-i.doneAt>864e5){ch=true;return false}return true});
+    if(ch)p[x.k]=keep.map(i=>Object.assign({},i))});
+  if(Object.keys(p).length)patch('lists/house',p,{})}
 function dropJunk(){if(lsGet('hub-junk-1','')==='done')return;const L=listsData(),b=L.buy||[],keep=b.filter(x=>!JUNK.includes(x.id));
   if(keep.length!==b.length)patch('lists/house',{buy:keep},{});lsSet('hub-junk-1','done')}
 function applyInbox(items){let seen=[];try{seen=JSON.parse(lsGet('hub-inbox-seen','[]'))||[]}catch(e){}
@@ -989,14 +1048,62 @@ function agendaView(){if(!INART&&!FEED)return '<p class="ag-empty">Connect the c
         '<span class="tt">'+esc(e.title)+(nx?'<small data-until="'+e.startMs+'">'+untilText(e.startMs)+'</small>':'')+'</span>'+(isNew(e)?'<span class="ag-new">New</span>':'')+'</div>'})}
   const age=calAge();
   return (h||'<p class="ag-empty">Nothing on the calendar for the next few days.</p>')+(age?'<p class="ag-age">'+esc(age.charAt(0).toUpperCase()+age.slice(1))+'</p>':'')}
-function glanceCal(){const ahead=lookAhead(),D=DAYS[dowOf(S.today)],ND=DAYS[dowOf(addDays(S.today,1))];
-  let w='';if(WX&&WX.current){const c=WX.current,l=WMO(c.weather_code),d=WX.daily,ti=todayIdx();
-    w='<button class="cg-wx" data-act="open" data-s="weather" aria-label="Weather details, forecast and radar">'+icon(l[1],c.is_day!==0)+'<b>'+rnd(c.temperature_2m)+'°</b><span>'+esc(l[0])+(ti>=0?', '+(ahead&&ti+1<d.time.length?'low tonight '+rnd(d.temperature_2m_min[ti+1])+'°':rnd(d.temperature_2m_max[ti])+'° today'):'')+'</span><i aria-hidden="true">›</i></button>'}
-  else w='<button class="cg-wx" data-act="open" data-s="weather"><span>'+(WXstate==='noloc'?'Add your ZIP in Settings › Household':'Weather is loading')+'</span></button>';
-  return '<section class="glance cg" aria-label="Time, weather and calendar"><div class="g-date">'+parse(S.today).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</div>'+
-    '<div class="g-time" id="time">'+clockHTML()+'</div>'+w+
-    '<button class="agenda2" id="agenda2" data-act="open" data-s="week" aria-label="Calendar for the next few days. Tap for the week.">'+agendaView()+'</button>'+
-    '<div class="g-mid" id="gmid">'+midView()+'</div></section>'}
+/* ---------- "Home board" layout (preview, chosen in Settings): a header with the time, one sentence about the day,
+   weather and timers; under it the calendar and the lists share the screen equally ---------- */
+const shortTitle=t=>{t=String(t||'').trim();return t.length>34?t.slice(0,32).trim()+'…':t};
+const lc1=s=>s?s.charAt(0).toLowerCase()+s.slice(1):s;
+// the day in one sentence, from the calendar: what's left today, then tomorrow's first thing in the evening
+function daySentence(){if(!FEED&&!INART)return '';if(CAL.state!=='ok')return '';const now=Date.now(),tm=addDays(S.today,1);
+  const hol=CAL.events.find(e=>e.day===S.today&&e.cat==='hol'),left=CAL.events.filter(e=>e.day===S.today&&!e.allDay&&(e.endMs||e.startMs)>now).sort(byStart),
+    allDay=CAL.events.filter(e=>e.day===S.today&&e.allDay&&e.cat!=='hol');
+  let s=hol?hol.title+'. ':'';
+  if(left.length){const p=left.slice(0,3).map((e,i)=>(i?lc1(shortTitle(e.title)):shortTitle(e.title))+' at '+fmtTime(e.startMs));s+=(p.length>1?p.slice(0,-1).join(', ')+', then '+p[p.length-1]:p[0])+'.'}
+  else if(allDay.length)s+=allDay.slice(0,2).map(e=>shortTitle(e.title)).join(' and ')+' today.';
+  else s+=lookAhead()?'':'Nothing else on the calendar today.';
+  if(lookAhead()||!left.length){const t=CAL.events.filter(e=>e.day===tm).sort(byStart)[0];if(t)s+=' Tomorrow: '+lc1(shortTitle(t.title))+(t.allDay?'':' at '+fmtTime(t.startMs))+'.'}
+  return s.trim()}
+const TIMER_IC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M9.5 3h5"/></svg>';
+// right side of the header: what's running or due (gold), then weather and the timer button
+function boardMid(){let h='';const lv=leaveInfo();
+  if(lv)h+='<div class="bpill">'+(lv.left>0?'<b id="gleave">'+Math.ceil(lv.left/60000)+' min</b><span>to '+esc(lc1(lv.label))+'</span>':'<b>Time to go</b><span>'+esc(lv.label)+'</span>')+'</div>';
+  S.timers.forEach(tm=>{h+='<div class="bpill"><b id="tm-'+tm.id+'">'+fmtLeft(tm.end-Date.now())+'</b><button class="tname" data-act="tname" data-id="'+tm.id+'">'+esc(tm.label.replace(/-minute timer/,' min'))+'</button><button class="bx" data-act="tstop" data-id="'+tm.id+'" aria-label="Cancel '+esc(tm.label)+'">×</button></div>'});
+  if(WX&&WX.current){const c=WX.current,l=WMO(c.weather_code),d=WX.daily,ti=todayIdx();
+    h+='<button class="bwx" data-act="open" data-s="weather" aria-label="'+esc(l[0])+'. Forecast and radar">'+icon(l[1],c.is_day!==0)+'<b>'+rnd(c.temperature_2m)+'°</b>'+(ti>=0?'<span>'+rnd(d.temperature_2m_max[ti])+'° / '+rnd(d.temperature_2m_min[ti])+'°</span>':'')+'</button>'}
+  else h+='<button class="bwx" data-act="open" data-s="weather"><span>'+(WXstate==='noloc'?'Add your ZIP':'Weather')+'</span></button>';
+  return h+'<button class="bbtn" data-act="tnew">'+TIMER_IC+'Timer</button>'}
+function boardHead(){const s=daySentence();
+  return '<header class="bhead"><div class="bclock"><div class="g-time" id="time">'+clockHTML()+'</div><div class="bday"><b>'+parse(S.today).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</b>'+(s?'<span>'+esc(s)+'</span>':'')+'</div></div>'+
+    '<div class="bside" id="gmid">'+boardMid()+'</div></header>'}
+function calColumn(){const ahead=lookAhead(),d=ahead?addDays(S.today,1):S.today,D=DAYS[dowOf(d)],pl=(weekData(mondayOf(d)).plan||{})[D.k]||{};
+  return '<div class="bh"><h2>Calendar</h2><button class="blink" data-act="open" data-s="week">Week ›</button></div>'+
+    '<button class="agenda2" id="agenda2" data-act="open" data-s="week" aria-label="The next few days. Tap for the week.">'+agendaView()+'</button>'+
+    '<button class="bdin" data-act="qedit" data-k="dinner" data-d="'+d+'"><span>'+(ahead?'Tomorrow’s dinner':'Dinner tonight')+'</span>'+(pl.dinner?'<b>'+esc(pl.dinner)+'</b>':'<b class="empty">Plan it</b>')+'<i aria-hidden="true">›</i></button>'}
+// one list row: tick it, tap × or swipe left to delete; both can be undone
+const brow=(L,x)=>'<div class="brow" data-swipe data-l="'+L+'" data-id="'+x.id+'">'+ck(x.done,'ltog','data-l="'+L+'" data-id="'+x.id+'"',x.t,x.from?'From '+x.from:'')+'<button class="bx" data-act="ldel" data-l="'+L+'" data-id="'+x.id+'" aria-label="Delete '+esc(x.t)+'">×</button></div>';
+function listSection(k,title,cls){const all=listsData()[k]||[],open=all.filter(x=>!x.done),dn=all.length-open.length;
+  return '<section class="bsec '+cls+'"><div class="bh"><h2>'+title+(open.length?'<em>'+open.length+'</em>':'')+'</h2><div class="bact">'+(dn?'<button class="blink" data-act="lclear" data-l="'+k+'">Clear '+dn+' done</button>':'')+
+    '<button class="blink add" data-act="addto" data-l="'+k+'">+ Add</button></div></div>'+(open.length?'<div class="brows'+(k==='buy'?' grid2':'')+'" data-fit="'+k+'">'+open.map(x=>brow(k,x)).join('')+'</div>':'<div class="bnone">'+(k==='buy'?'Nothing to buy.':'Nothing to do.')+'</div>')+'</section>'}
+function listColumn(){const L=listsData(),addr=INBOX.status&&INBOX.status.address,todo=(L.todo||[]).filter(x=>!x.done),buy=(L.buy||[]).filter(x=>!x.done);let h='';
+  // a daily checklist only appears if one is set up again (by default they come in by email instead)
+  if(!noRoutine()){const t=new Date(),r=ROUTINE[routineIdx(t)],done=dayData(S.today).done||{},open=r.items.filter(i=>!done[i[0]]);
+    if(open.length)h+='<section class="bsec routine"><div class="bh"><h2>'+esc(r.title)+'<em>'+open.length+'</em></h2></div><div class="brows" data-fit="routine">'+open.map(i=>'<div class="brow">'+ck(false,'tday','data-d="'+S.today+'" data-id="'+i[0]+'"',i[1],i[2])+'</div>').join('')+'</div></section>'}
+  if(!todo.length&&!buy.length&&!h)h+='<section class="bsec todo"><div class="bh"><h2>To do</h2><div class="bact"><button class="blink add" data-act="addto" data-l="todo">+ Add</button></div></div><div class="bempty"><b>Nothing to do or buy</b><span>'+
+    esc(addr?'Email '+addr+' a line like “To do: call the plumber” or “Groceries: milk, eggs”.':'Tap + Add, or set up the hub’s email in Settings.')+'</span></div></section>';
+  else{h+=listSection('todo','To do','todo')+listSection('buy','Groceries','buy')}
+  const more=LISTS.filter(x=>x.k!=='todo'&&x.k!=='buy').map(x=>({x,n:(L[x.k]||[]).filter(i=>!i.done).length})).filter(o=>o.n);
+  if(more.length)h+='<div class="bfoot">'+more.map(o=>'<button class="jc" data-act="open" data-s="lists">'+esc(LSHORT[o.x.k])+' <em>'+o.n+'</em></button>').join('')+'</div>';
+  return h}
+function boardView(){return '<main class="board">'+boardHead()+'<section class="pane bcal" aria-label="Calendar">'+calColumn()+'</section><section class="pane blist" aria-label="Lists">'+listColumn()+'</section></main>'}
+// list rows that don't fit hide behind "+N more", which opens Lists
+// To do is sized by its own rows (up to 60% of the pane) and is fitted first, with its height frozen, so hiding its
+// overflow can't hand space back after Groceries has been measured; Groceries then fills what's left.
+function fitRows(){const all=[...document.querySelectorAll('[data-fit]')];all.forEach(B=>{B.style.height='';B.querySelectorAll(':scope > .brow').forEach(r=>r.hidden=false);const o=B.querySelector('.bmore');if(o)o.remove()});
+  all.sort((a,b)=>(a.dataset.fit==='buy')-(b.dataset.fit==='buy')).forEach(B=>{const rows=[...B.querySelectorAll(':scope > .brow')];
+  if(B.dataset.fit!=='buy')B.style.height=B.clientHeight+'px';
+  if(B.scrollHeight<=B.clientHeight+1)return;const bot=B.getBoundingClientRect().bottom,lim=bot-34,over=rows.map(r=>r.getBoundingClientRect().bottom>lim);let n=0;
+  // the first row stays whenever it fits at all, even if the "+N more" link then sits beside its last pixels
+  if(over[0]&&rows[0].getBoundingClientRect().bottom<=bot+1)over[0]=false;
+  rows.forEach((r,i)=>{if(over[i]){r.hidden=true;n++}});if(n)B.insertAdjacentHTML('beforeend','<button class="bmore" data-act="open" data-s="lists">+'+n+' more ›</button>')})}
 function weatherSheet(){return '<div class="wxsheet">'+wxGlance()+tipView()+'<div class="g-sky">'+sunBlock()+'</div></div>'}
 // the agenda shows whole rows only; what doesn't fit is a tap away in the week view
 function fitAgenda(){const A=document.getElementById('agenda2');if(!A)return;const rows=[...A.querySelectorAll('.ag-row,.ag-day')];rows.forEach(r=>r.hidden=false);
@@ -1007,13 +1114,6 @@ function fitAgenda(){const A=document.getElementById('agenda2');if(!A)return;con
   // never leave a day name with nothing under it
   rows.forEach((r,i)=>{if(r.classList.contains('ag-day')&&!r.hidden&&(!rows[i+1]||rows[i+1].hidden))r.hidden=true});
   if(hid)A.insertAdjacentHTML('beforeend','<span class="ag-more">'+hid+' more this week ›</span>')}
-function inboxCard(){const L=listsData(),open=[];LISTS.forEach(x=>(L[x.k]||[]).forEach(i=>{if(!i.done)open.push(Object.assign({l:x.k},i))}));
-  // when the big pane is the To do list, this card doesn't repeat it
-  const mail=open.filter(i=>i.from&&!(i.l==='todo'&&noRoutine())),recent=mail.slice(-3).reverse(),who=[...new Set(mail.slice(-6).map(i=>i.from))].slice(0,2);
-  const n=k=>open.filter(i=>i.l===k).length,summary=[n('buy')?n('buy')+' to buy':'',n('todo')?n('todo')+' to do':''].filter(Boolean).join(', ');
-  const addr=INBOX.status&&INBOX.status.address;
-  if(recent.length)return '<button class="pane hcard" data-act="open" data-s="lists"><span>From email</span><b>'+esc(recent.map((i,k)=>k?i.t.charAt(0).toLowerCase()+i.t.slice(1):i.t).join(', '))+'</b><small>'+esc('from '+who.join(' and '))+'</small></button>';
-  return '<button class="pane hcard" data-act="open" data-s="lists"><span>Lists</span>'+(summary?'<b>'+esc(summary.charAt(0).toUpperCase()+summary.slice(1))+'</b>':'<b class="empty">Nothing to buy or do</b>')+'<small>'+esc(addr?'Email '+addr:'Tap to add')+'</small></button>'}
 
 /* ---------- kitchen timers, the leave-the-house countdown, and dated countdowns ---------- */
 const fmtLeft=ms=>{const t=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60;return (h?h+':'+pad(m):m)+':'+pad(x)};
@@ -1029,7 +1129,7 @@ function midView(){let h='';const lv=leaveInfo();
   if(!S.timers.length)countdowns().forEach(c=>{h+='<div class="g-count"><b>'+(c.days===0?'Today':c.days===1?'Tomorrow':c.days+' days')+'</b><span>'+(c.days>1?'until ':'')+esc(c.name)+'</span></div>'});
   h+='<div class="g-tbtns" role="group" aria-label="Start a timer"><span>Timer</span>'+[1,5,10,15,30].map(m=>'<button data-act="tstart" data-m="'+m+'" aria-label="'+m+' minute timer">'+m+(m===1?' min':'')+'</button>').join('')+'<button class="tnew" data-act="tnew" aria-label="Timer with a name or another length">+</button></div>';
   return h}
-function refreshMid(){const gm=document.getElementById('gmid'),sky=document.getElementById('sun');if(!gm)return;const h=midView();
+function refreshMid(){const gm=document.getElementById('gmid'),sky=document.getElementById('sun');if(!gm)return;const h=S.layout==='board'?boardMid():midView();
   if(h.replace(/<b id="tm-[^"]+">[^<]*<\/b>/g,'')!==(gm._sig||'')){gm.innerHTML=h;gm._sig=h.replace(/<b id="tm-[^"]+">[^<]*<\/b>/g,'')}
   if(sky)sky.hidden=!!(S.timers.length||leaveInfo())}
 let actx=null;
@@ -1236,12 +1336,12 @@ function timerView(){const d=S.tdraft||{};
 function keepTyped(){const n=document.getElementById('tname-in');if(n&&S.tdraft)S.tdraft.name=n.value}
 
 /* ---- what's new: shown once per release, until tapped or for a day ---- */
-const NEWS={id:'2026-11-22-todo',items:[
+const NEWS={id:'2026-11-22-board',items:[
+  ['Try the Home board.','Settings › Home layout › Home board. The calendar and your lists share the screen, with the day in one sentence, weather and timers along the top.'],
+  ['Clearing lists.','Tap × on any item, or swipe it left, to delete it (Undo brings it back). Clear removes everything ticked, and ticked items clear themselves after a day.'],
   ['To-dos come from email now.','The built-in checklists are cleared. Email the hub (its address is in Lists and Settings) a line like “To do: call the plumber” and it appears on the home screen, ready to tick off.'],
-  ['Try the Calendar first layout.','Settings › Home layout. It puts the next few days of the calendar under the clock, counts down to the next event, tags new events, and shows what was emailed to the hub. Classic stays until you choose.'],
-  ['A To do list.','In Lists, next to Need to buy. Once the hub’s email address is set up, emailed groceries, to-dos and meals land here by themselves.'],
-  ['Live radar.','Tap Radar next to Hours and 5 days for the National Weather Service radar near you, moving through the last hour. Switch to Country for the whole US.'],
-  ['Name your timers.','Tap + next to the timer buttons to pick a name and any length, from 1 minute to 90. Tap a running timer’s name to rename it.']]};
+  ['Live radar.','Tap the weather for the hourly forecast, 5 days, and the National Weather Service radar near you.'],
+  ['Name your timers.','Pick a name and any length, from 1 minute to 90. Tap a running timer’s name to rename it.']]};
 function newsView(){return '<ol class="newsl">'+NEWS.items.map(x=>'<li><b>'+esc(x[0])+'</b> '+esc(x[1])+'</li>').join('')+'</ol><div class="qbtns"><button class="primary" data-act="close">Got it</button></div>'}
 function peopleSettings(){const ps=people(),own=settingsDoc().owners||{};
   let h='<section class="card"><div class="setrow" style="flex-direction:column;align-items:stretch"><div><h3>Family</h3><div class="note">Give each person a color. Their jobs show their avatar, and a calendar event takes their color when their name is in its title, like “Sam soccer”.</div></div>';
@@ -1273,7 +1373,7 @@ function planView(){const mon=mondayOf(S.sel),wk=weekData(mon),plan=wk.plan||{},
 function listCard(L){const items=listsData()[L.k]||[],nDone=items.filter(x=>x.done).length;
   return '<section class="card"><header><div><h3>'+esc(L.title)+'</h3></div><span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="pillbtn sm" data-act="mail" data-l="'+L.k+'">Email</button>'+(nDone?'<button class="pillbtn" data-act="lclear" data-l="'+L.k+'">Clear '+nDone+' done</button>':'<span class="count">'+items.length+'</span>')+'</span></header>'+
    '<form class="addrow" data-form="'+L.k+'"><input type="text" id="add-'+L.k+'" aria-label="Add to '+esc(L.title)+'" placeholder="'+esc(L.ph)+'" autocomplete="off"><button type="submit">Add</button></form><div class="list">'+
-   (items.length?items.map(x=>'<div class="li">'+ck(x.done,'ltog','data-l="'+L.k+'" data-id="'+x.id+'"',x.t,x.from?'Emailed by '+x.from:'')+'<button class="x" data-act="ldel" data-l="'+L.k+'" data-id="'+x.id+'" aria-label="Remove '+esc(x.t)+'">×</button></div>').join(''):'<div class="empty">Nothing here yet.</div>')+'</div></section>'}
+   (items.length?items.map(x=>'<div class="li" data-swipe data-l="'+L.k+'" data-id="'+x.id+'">'+ck(x.done,'ltog','data-l="'+L.k+'" data-id="'+x.id+'"',x.t,x.from?'Emailed by '+x.from:'')+'<button class="x" data-act="ldel" data-l="'+L.k+'" data-id="'+x.id+'" aria-label="Remove '+esc(x.t)+'">×</button></div>').join(''):'<div class="empty">Nothing here yet.</div>')+'</div></section>'}
 function hmView(){const mon=mondayOf(S.sel),wk=weekData(mon),visits=(wk.visits||[]).slice().sort(),log=wk.visitLog||{};
   let h='<section class="card c-hm"><header><div><h3>Her visit days</h3><div class="note">Pick two. About 5–6 hours each; meal prep fits best on her days.</div></div><span class="count">'+visits.length+'/2</span></header><div class="chips">'+
     DAYS.map((D,i)=>'<button class="chip" aria-pressed="'+visits.includes(i)+'" data-act="visit" data-i="'+i+'">'+D.name.slice(0,3)+'</button>').join('')+'</div></section><div class="grid">';
@@ -1284,7 +1384,7 @@ function hmView(){const mon=mondayOf(S.sel),wk=weekData(mon),visits=(wk.visits||
      '<div class="field"><label for="else-'+vk+'">Anything else, to buy or flag</label><textarea id="else-'+vk+'" data-in="weeks/'+mon+'" data-key="visitLog.'+vk+'.notes" placeholder="Notes for this visit">'+esc(L.notes||'')+'</textarea></div></section>'});
   return h+listCard(LISTS.find(L=>L.k==='forManager'))+'</div>'}
 function listsView(){const a=INBOX.status&&INBOX.status.address;
-  return (a?'<p class="note">Email the hub at <b>'+esc(a)+'</b>, one thing per line, like <b>Groceries: milk, eggs</b> or <b>To do: call the plumber</b>.</p>':'')+'<div class="grid">'+LISTS.map(listCard).join('')+'</div>'}
+  return (a?'<p class="note">Email the hub at <b>'+esc(a)+'</b>, one thing per line, like <b>Groceries: milk, eggs</b> or <b>To do: call the plumber</b>.</p>':'')+'<p class="note">Tap × or swipe an item left to delete it. Ticked items clear themselves after a day.</p><div class="grid">'+LISTS.map(listCard).join('')+'</div>'}
 function calView(){if(!INART&&!FEED)return '';
   if(CAL.state==='approval_required'||CAL.state==='not_in_manifest'||CAL.state==='consent_required')return '<p class="empty">This page needs your OK to read Google Calendar.</p><div><button class="pillbtn" data-act="calallow">Allow Google Calendar</button></div>';
   if(CAL.state!=='ok')return '<p class="empty">'+esc(CALMSG[CAL.state]||CALMSG.error)+'</p>';
@@ -1326,7 +1426,7 @@ async function saveHouse(){const v=id=>{const n=document.getElementById(id);retu
   x.rev=Date.now();const moved=JSON.stringify(x.loc)!==JSON.stringify(P.loc);lsSet('hub-profile',JSON.stringify(x));applyProfile(x);S.err=null;
   if(moved){WX=null;lsSet('hub-wx','');WXstate='loading';loadWx().then(render)}closeSheet()}
 function settingsView(){return '<section class="card"><div class="setrow"><div><h3>Household</h3><div class="note">Your location, weekly schedule and checklists. Saved only on this tablet.</div></div><button class="pillbtn" data-act="open" data-s="house">Edit household</button></div></section>'+peopleSettings()+'<section class="card">'+
-  '<div class="setrow"><div><h3>Home layout</h3><div class="note">Calendar first puts the next three days under the clock, and shows what was emailed to the hub. Weather details move behind the weather line.</div></div><div class="seg"><button data-act="layout" data-v="classic" aria-pressed="'+(S.layout!=='cal')+'">Classic</button><button data-act="layout" data-v="cal" aria-pressed="'+(S.layout==='cal')+'">Calendar first</button></div></div>'+'<div class="setrow"><div><h3>Glass effect</h3><div class="note">Light uses frosted panels without live blur. Faster on older tablets.</div></div><div class="seg"><button data-act="lite" data-v="0" aria-pressed="'+(!S.lite)+'">Full</button><button data-act="lite" data-v="1" aria-pressed="'+S.lite+'">Light</button></div></div>'+
+  '<div class="setrow"><div><h3>Home layout</h3><div class="note">Home board splits the screen between the calendar and your lists, with the time, the day in a sentence, weather and timers along the top.</div></div><div class="seg"><button data-act="layout" data-v="classic" aria-pressed="'+(S.layout!=='board')+'">Classic</button><button data-act="layout" data-v="board" aria-pressed="'+(S.layout==='board')+'">Home board</button></div></div>'+'<div class="setrow"><div><h3>Glass effect</h3><div class="note">Light uses frosted panels without live blur. Faster on older tablets.</div></div><div class="seg"><button data-act="lite" data-v="0" aria-pressed="'+(!S.lite)+'">Full</button><button data-act="lite" data-v="1" aria-pressed="'+S.lite+'">Light</button></div></div>'+
   '<div class="setrow"><div><h3>Daytime rest</h3><div class="note">After 20 minutes with no one touching it, the screen dims to protect it from burn-in. Tap anywhere to wake it.</div></div><div class="seg"><button data-act="dimset" data-v="0" aria-pressed="'+(!S.dimOn)+'">Off</button><button data-act="dimset" data-v="1" aria-pressed="'+S.dimOn+'">On</button></div></div>'+
   '<div class="setrow"><div><h3>Sky</h3><div class="note">Follow the sun moves the light and color with the real sky over '+(LOC?LOC.label:'not set')+'. Always dusk keeps the warm evening look all day.</div></div><div class="seg"><button data-act="skymode" data-v="live" aria-pressed="'+(S.skyMode==='live')+'">Follow the sun</button><button data-act="skymode" data-v="dusk" aria-pressed="'+(S.skyMode==='dusk')+'">Always dusk</button></div></div>'+
   '<div class="setrow" style="flex-direction:column;align-items:stretch"><div><h3>Preview the day</h3><div class="note">Drag to watch the sky from dawn to night. <b id="prevlbl">'+(S.previewMin==null?'Showing now':fmtTime(skyNow().getTime()))+'</b></div></div><input type="range" id="skyprev" min="0" max="1439" step="5" value="'+(S.previewMin==null?new Date().getHours()*60+new Date().getMinutes():S.previewMin)+'" aria-label="Preview time of day" style="width:100%;accent-color:#fff"><div><button class="pillbtn sm" data-act="prevnow">Back to now</button></div></div>'+
@@ -1384,7 +1484,7 @@ function fitLists(){document.querySelectorAll('.now .list').forEach(L=>{const ro
   const room=L.clientHeight-52;let shown=0;for(const r of rows){if(r.offsetTop-L.offsetTop+r.offsetHeight<=room)shown++;else break}
   rows.slice(Math.max(1,shown)).forEach(r=>r.hidden=true);const n=rows.length-Math.max(1,shown);
   L.insertAdjacentHTML('beforeend','<button class="jc add more" '+(L.dataset.more?'data-act="open" data-s="'+L.dataset.more+'"':'data-act="openday" data-d="'+S.today+'"')+'>+'+n+' more ›</button>')})}
-addEventListener('resize',()=>requestAnimationFrame(()=>{fitLists();fitAgenda()}));
+addEventListener('resize',()=>requestAnimationFrame(()=>{fitLists();fitAgenda();fitRows()}));
 // a chip row that is wider than the pane drops its last job chips into the "+N more" count
 function fitChips(){document.querySelectorAll('.now .jcs').forEach(R=>{let guard=6;while(R.scrollWidth>R.clientWidth+1&&guard--){const more=R.querySelector('.jc.more'),jobs=[...R.querySelectorAll('.jc[data-act="opengroup"]')];if(!jobs.length)break;
   jobs[jobs.length-1].remove();if(more){more.textContent='+'+(parseInt(more.textContent.slice(1))+1)+' more ›'}else{const side=R.querySelector('.side');(side||null);R.insertAdjacentHTML('beforeend','<button class="jc more" data-act="openday" data-d="'+S.today+'">+1 more ›</button>')}}})}
@@ -1394,11 +1494,10 @@ function render(){
   const a=document.activeElement,id=a&&a.id,txt=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA');let val,ss,se;
   if(txt){val=a.value;try{ss=a.selectionStart;se=a.selectionEnd}catch(e){}}
   const sb=document.getElementById('sheetbody'),sbTop=sb?sb.scrollTop:0,prevSheet=S._lastSheet;
-  const calFirst=S.layout==='cal';
-  app.innerHTML='<main class="home'+(calFirst?' calfirst':'')+'">'+(calFirst?glanceCal():glanceView())+'<div class="act">'+nowPane()+'<div class="cards">'+mealCard()+(calFirst?inboxCard():nextCard())+'</div></div></main>'+dock()+sheetView()+
+  app.innerHTML=(S.layout==='board'?boardView():'<main class="home">'+glanceView()+'<div class="act">'+nowPane()+'<div class="cards">'+mealCard()+nextCard()+'</div></div></main>')+dock()+sheetView()+
     (S.err?'<div class="status glass" role="status">'+esc(S.err)+'</div>':S.toast?'<button class="status glass" data-act="open" data-s="lists" style="border:0;color:inherit;font:inherit;font-size:14px;cursor:pointer;min-height:44px">'+esc(S.toast)+' ›</button>':battNote())+(S.undo?'<div class="status glass undo" role="status">'+(S.undo.verb||'Checked')+' “'+esc(S.undo.label.slice(0,48))+'”<button data-act="undo">Undo</button></div>':S.news&&!S.sheet?'<button class="status glass news" data-act="news">What’s new ›</button>':'')+(S.amb?ambientView():'')+(S.dim&&!S.amb?'<div class="dimmer" aria-hidden="true"></div>':'')+(S.ring?'<div class="alarm" data-act="ringoff" role="alertdialog" aria-label="Timer done"><b>Time’s up</b><span>'+esc(S.ring.label)+'</span><em>Tap anywhere to stop</em></div>':'');
   calSheet();
-  requestAnimationFrame(()=>{fitLists();fitChips();fitAgenda()});
+  requestAnimationFrame(()=>{fitLists();fitChips();fitAgenda();fitRows()});
   // a redraw of a sheet that's already open keeps its scroll and doesn't replay the slide-up
   const nb=document.getElementById('sheetbody');if(nb&&prevSheet===S.sheet+S.sel){nb.scrollTop=sbTop;const sh=nb.closest('.sheet');if(sh)sh.style.animation='none'}S._lastSheet=S.sheet+S.sel;
   document.documentElement.style.overflow=S.sheet?'hidden':'';
@@ -1420,6 +1519,7 @@ function tick(){const t=new Date(),el=document.getElementById('time');if(el)el.i
   refreshMid();
   paintSky();
   const now=iso(t),ri=routineIdx(t);
+  if(Math.floor(Date.now()/36e5)!==S._purgeH){S._purgeH=Math.floor(Date.now()/36e5);purgeDone()}
   if(now!==S.today){const wasToday=S.sel===S.today;S.today=now;if(wasToday)S.sel=now;syncSubs();if(MCP)watchCals();S._ri=ri;render();return}
   const idle=Date.now()-lastAct,dayHrs=t.getHours()>=5&&t.getHours()<21,dk=document.querySelector('.dock');if(dk)dk.classList.toggle('idle',idle>120000&&!S.sheet);
   if(S.dimOn&&dayHrs&&!S.dim&&!S.amb&&!S.sheet&&!scanStream&&!S.timers.length&&!S.ring&&!leaveInfo()&&idle>1200000&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))){S.dim=true;render();return}
@@ -1493,14 +1593,31 @@ function onAct(b){const a=b.dataset.act,ds=b.dataset;
   if(a==='tprep'){const cur=!!((C['prep/'+ds.k]||{}).done||{})[ds.id];patch('prep/'+ds.k,{done:{[ds.id]:!cur}},{done:{}});return}
   if(a==='visit'){const m=mondayOf(S.sel),i=+ds.i;let v=(weekData(m).visits||[]).slice();if(v.includes(i))v=v.filter(x=>x!==i);else{v.push(i);if(v.length>2)v.shift()}patch('weeks/'+m,{visits:v.sort()},weekBase(m));return}
   if(a==='ltog'||a==='ldel'||a==='lclear'){let items=(listsData()[ds.l]||[]).slice();
-    if(a==='ltog')items=items.map(x=>x.id===ds.id?Object.assign({},x,{done:!x.done}):x);if(a==='ldel')items=items.filter(x=>x.id!==ds.id);if(a==='lclear')items=items.filter(x=>!x.done);
+    // a ticked item remembers when, so it can clear itself a day later
+    if(a==='ltog')items=items.map(x=>{if(x.id!==ds.id)return x;const y=Object.assign({},x,{done:!x.done});if(y.done)y.doneAt=Date.now();else delete y.doneAt;return y});
+    if(a==='ldel'){const i=items.findIndex(x=>x.id===ds.id);if(i<0)return;const gone=items[i];items.splice(i,1);
+      if(!ds.noundo){S.undo={act:'lrestore',ds:{l:ds.l,i:String(i),item:JSON.stringify(gone)},label:gone.t,verb:'Deleted'};clearTimeout(S._undoT);S._undoT=setTimeout(()=>{S.undo=null;render()},6000)}}
+    if(a==='lclear')items=items.filter(x=>!x.done);
     patch('lists/house',{[ds.l]:items},{});return}
+  if(a==='lrestore'){let items=(listsData()[ds.l]||[]).slice();const it=JSON.parse(ds.item);if(!items.some(x=>x.id===it.id))items.splice(Math.min(+ds.i,items.length),0,it);patch('lists/house',{[ds.l]:items},{});return}
+  if(a==='addto'){S.addDest=ds.l;openSheet('add');focusIn('add-'+ds.l);return}
   if(a==='calallow'){calAllow();return}
   if(a==='lite'){S.lite=ds.v==='1';lsSet('hub-lite',S.lite?'1':'0');paintSky();render();return}
   if(a==='wake'){toggleWake();return}}
 document.addEventListener('pointerdown',e=>{lastAct=Date.now();try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume()}catch(_){}if(S.amb||S.dim){S.amb=false;S.dim=false;swallow=true;e.preventDefault();render()}},true);
 document.addEventListener('keydown',()=>{lastAct=Date.now();if(S.amb||S.dim){S.amb=false;S.dim=false;render()}},true);
-document.addEventListener('click',e=>{if(swallow){swallow=false;e.preventDefault();e.stopPropagation();return}const b=e.target.closest('[data-act]');if(b)onAct(b)});
+// swipe a list row left to delete it (Undo brings it back); a mostly vertical drag is left alone
+let sw=null,swipedAt=0;
+document.addEventListener('pointerdown',e=>{const r=e.target.closest&&e.target.closest('[data-swipe]');sw=r?{r,x:e.clientX,y:e.clientY,dx:0,on:false}:null});
+document.addEventListener('pointermove',e=>{if(!sw)return;const dx=e.clientX-sw.x,dy=e.clientY-sw.y;
+  if(!sw.on){if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)*1.5)sw.on=true;else{if(Math.abs(dy)>12)sw=null;return}}
+  sw.dx=Math.min(0,dx);sw.r.style.transition='none';sw.r.style.transform='translateX('+sw.dx+'px)';sw.r.style.opacity=String(Math.max(.25,1+sw.dx/320))});
+function swEnd(){if(!sw)return;const s=sw;sw=null;if(!s.on)return;swipedAt=performance.now();s.r.style.transition='';
+  if(s.dx<-90){s.r.style.transform='translateX(-105%)';s.r.style.opacity='0';const f=document.createElement('button');Object.assign(f.dataset,{act:'ldel',l:s.r.dataset.l,id:s.r.dataset.id});setTimeout(()=>onAct(f),160)}
+  else{s.r.style.transform='';s.r.style.opacity=''}}
+document.addEventListener('pointerup',swEnd);document.addEventListener('pointercancel',swEnd);
+document.addEventListener('click',e=>{if(swallow){swallow=false;e.preventDefault();e.stopPropagation();return}
+  if(performance.now()-swipedAt<450){e.preventDefault();e.stopPropagation();return}const b=e.target.closest('[data-act]');if(b)onAct(b)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.sheet){closeSheet();return}
   if((e.key==='Enter'||e.key===' ')&&e.target.matches('[role="button"][data-act]')){e.preventDefault();onAct(e.target)}});
 document.addEventListener('submit',e=>{const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();
@@ -1533,11 +1650,14 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
   for(let i=0;i<90;i++){const o=(.25+rnd()*.75).toFixed(2),z=rnd()<.12?3:2;h+='<i style="left:'+(rnd()*100).toFixed(2)+'%;top:'+(rnd()*72).toFixed(2)+'%;opacity:'+o+';width:'+z+'px;height:'+z+'px"></i>'}st.innerHTML=h})();
 S._ri=routineIdx(new Date());
 // home layout: Classic stays the default until Dan chooses; ?look=cal previews the calendar-first layout
-S.layout=/[?&]look=cal\b/.test(location.search)?'cal':lsGet('hub-layout','classic');
+S.layout=/[?&]look=board\b/.test(location.search)?'board':lsGet('hub-layout','classic');
+if(S.layout==='cal')S.layout='board'; // the earlier "Calendar first" preview became the Home board
 // the "What's new" note stays until it's tapped, or for a day after it first appears
 (function(){if(lsGet('hub-news-seen','')===NEWS.id)return;const f=lsGet('hub-news-first','').split(':');
   if(f[0]!==NEWS.id){lsSet('hub-news-first',NEWS.id+':'+Date.now());S.news=true}else S.news=Date.now()-(+f[1]||0)<864e5})();
-paintSky();render();setInterval(tick,15000);setInterval(timerTick,1000);
+paintSky();render();setInterval(tick,15000);
+// web fonts change text sizes once they arrive, so fit the rows again then
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>requestAnimationFrame(()=>{fitLists();fitAgenda();fitRows()}));setInterval(timerTick,1000);
 loadWx();setInterval(loadWx,20*60*1000);
 const b64u=t=>Uint8Array.from(atob(t.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
 async function pullProfile(){const key=lsGet('hub-pkey','');if(!key||!(window.crypto&&crypto.subtle))return;
@@ -1565,7 +1685,7 @@ if(!INART)setInterval(()=>{const f=document.getElementById('calframe');if(f&&doc
   store=db||makeLocal();shared=!!db;S.ready=true;syncSubs();watchBattery();
   store.collection('prep').onSnapshot(s=>{s.docs.forEach(d=>{if(!T.has('prep/'+d.id))C['prep/'+d.id]=clone(d.data())});render()},onErr);
   store.doc('settings/house').onSnapshot(s=>{if(s.exists&&!T.has('settings/house'))C['settings/house']=clone(s.data());render()},onErr);
-  store.doc('lists/house').onSnapshot(s=>{if(s.exists&&!T.has('lists/house'))C['lists/house']=clone(s.data());if(!INBOX.listsReady){INBOX.listsReady=true;dropJunk();applyInbox([])}render()},onErr);
+  store.doc('lists/house').onSnapshot(s=>{if(s.exists&&!T.has('lists/house'))C['lists/house']=clone(s.data());if(!INBOX.listsReady){INBOX.listsReady=true;dropJunk();purgeDone();applyInbox([])}render()},onErr);
   render()})();
 })();
 </script>
