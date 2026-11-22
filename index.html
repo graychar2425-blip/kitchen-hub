@@ -669,7 +669,39 @@ button.pill:active{transform:scale(.97)}
 .ag-row .tt small{display:block;font-size:14px;font-weight:600;color:#FFD58A}
 .ag-row.quiet .tt{color:var(--faint);font-weight:400}
 .ag-new{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:rgba(255,213,138,.18);color:#FFD58A;align-self:center}
-.ag-more{position:absolute;left:0;bottom:4px;font-size:14px;color:var(--muted)}
+.ag-more{position:absolute;left:0;bottom:0;border:0;background:none;color:var(--muted);font:inherit;font-size:15px;font-weight:600;min-height:32px;padding:0;cursor:pointer}
+button.ag-row{width:100%;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:10px}
+button.ag-row:active,.ag-chip:active{background:rgba(255,255,255,.1)}
+.ag-allday{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 6px;flex:none}
+.ag-chip{border:0;border-radius:10px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);color:var(--ink);font:inherit;font-size:16px;font-weight:500;min-height:40px;padding:4px 12px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ag-chip.hol{background:none;color:var(--muted)}
+.ag-chip .ag-new{margin-left:4px}
+.bcal .ag-chip{font-size:17px}
+/* event details */
+.evd{display:flex;flex-direction:column}
+.evr{display:grid;grid-template-columns:7em minmax(0,1fr);gap:12px;padding:12px 2px;border-top:1px solid var(--line);font-size:18px}
+.evr:first-child{border-top:0}
+.evr span{color:var(--muted)}
+.evr b{font-weight:500;overflow-wrap:anywhere}
+/* the week as seven columns */
+.wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;align-items:start}
+.wk-col{display:flex;flex-direction:column;gap:6px;min-width:0;min-height:100%;padding:10px 7px 8px;border-radius:14px;background:rgba(255,255,255,.06)}
+.wk-col.today{background:rgba(255,213,138,.1);box-shadow:inset 0 0 0 1px rgba(255,213,138,.42)}
+.wk-h{display:flex;align-items:baseline;justify-content:space-between;gap:4px;padding:0 3px 4px}
+.wk-h b{font-family:"Outfit",var(--ui);font-weight:300;font-size:22px}
+.wk-h span{font-family:"Outfit",var(--ui);font-size:22px;font-weight:300;color:var(--muted);font-variant-numeric:tabular-nums}
+.wk-col.today .wk-h span{color:#FFD58A}
+.wk-tag{display:block;width:100%;border:0;border-radius:8px;background:rgba(255,255,255,.12);color:var(--ink);font:inherit;font-size:14px;font-weight:600;text-align:left;padding:5px 8px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wk-tag.hol,.wk-tag.job{background:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);color:var(--muted);font-weight:500;cursor:default}
+.wk-ev{display:flex;flex-direction:column;gap:1px;width:100%;border:0;border-left:4px solid var(--pb,var(--c,#fff));border-radius:4px 8px 8px 4px;background:rgba(255,255,255,.08);color:var(--ink);font:inherit;text-align:left;padding:6px 7px;cursor:pointer;min-width:0}
+.wk-ev span{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.wk-ev b{font-size:15px;font-weight:600;line-height:1.25;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.wk-ev em{font-style:normal;font-size:12px;font-weight:700;color:#FFD58A}
+.wk-ev.past{opacity:.45}
+.wk-none{font-size:14px;color:var(--faint);padding:4px 3px}
+.wk-din{margin-top:auto;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:14px;font-weight:600;text-align:left;padding:8px 3px 2px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wk-din span{display:block;font-size:12px;font-weight:500;color:var(--muted)}
+@media (max-width:980px),(orientation:portrait){.wk{grid-template-columns:1fr}}
 .ag-empty{margin:4px 0 0;font-size:16px;color:var(--muted)}
 .ag-age{margin:8px 0 0;font-size:13px;color:var(--faint)}
 .agenda2 [hidden]{display:none}
@@ -884,11 +916,13 @@ const ART_CALS=[];
 function loadCals(){if(INART)return ART_CALS;return lsGet('hub-cals','').split(/[\s,]+/).filter(Boolean).map(x=>({id:x,name:x,holiday:/holiday/.test(x)}))}
 let CAL_IDS=loadCals();
 let FEED=INART?'':lsGet('hub-feed','');
-function feedNorm(list){const out=[];(Array.isArray(list)?list:[]).forEach(e=>{if(!e||!e.start)return;const title=e.title||'(No title)',cat=e.cal==='hol'?'hol':'cal',loc=e.location||'';
-  if(e.allDay){let d=String(e.start).slice(0,10);const end=e.end?String(e.end).slice(0,10):addDays(d,1);let n=0;while(d<end&&n<14){out.push({title,allDay:true,day:d,startMs:0,location:loc,cat});d=addDays(d,1);n++}}
-  else{const st=new Date(e.start),en=e.end?new Date(e.end):null;if(isNaN(st))return;out.push({title,allDay:false,day:iso(st),startMs:st.getTime(),endMs:en&&!isNaN(en)?en.getTime():null,location:loc,cat})}});return out}
+function feedNorm(list){const out=[],seen=new Set();(Array.isArray(list)?list:[]).forEach(e=>{if(!e||!e.start)return;const title=e.title||'(No title)',cat=e.cal==='hol'?'hol':'cal',loc=e.location||'',calName=e.calName||'';
+  // the same event can arrive twice (copied and shared, or on two calendars): show it once
+  const put=x=>{const k=x.title.trim().toLowerCase()+'|'+(x.allDay?x.day:x.startMs);if(seen.has(k))return;seen.add(k);out.push(x)};
+  if(e.allDay){let d=String(e.start).slice(0,10);const end=e.end?String(e.end).slice(0,10):addDays(d,1),days=Math.max(1,Math.round((parse(end)-parse(d))/864e5));let n=0;while(d<end&&n<14){put({title,allDay:true,day:d,startMs:0,location:loc,cat,calName,span:days});d=addDays(d,1);n++}}
+  else{const st=new Date(e.start),en=e.end?new Date(e.end):null;if(isNaN(st))return;put({title,allDay:false,day:iso(st),startMs:st.getTime(),endMs:en&&!isNaN(en)?en.getTime():null,location:loc,cat,calName})}});return out}
 async function loadFeed(){if(!FEED)return;
-  try{const r=await fetch(FEED+(FEED.includes('?')?'&':'?')+'days=8',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();
+  try{const r=await fetch(FEED+(FEED.includes('?')?'&':'?')+'days=14',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();
     if(j.error){CAL.state='feedbad';CAL.err=j.error}else{CAL.events=feedNorm(j.events);CAL.state='ok';CAL.err=null;CAL.at=j.at=Date.now();markEvents();
       if(j.inboxStatus)INBOX.status=j.inboxStatus;if(Array.isArray(j.inbox))applyInbox(j.inbox);delete j.inbox;lsSet('hub-feed-cache',JSON.stringify(j))}}
   catch(e){const c=(()=>{try{return JSON.parse(lsGet('hub-feed-cache','null'))}catch(_){return null}})();
@@ -1089,21 +1123,39 @@ const EVSEEN=(()=>{try{return JSON.parse(lsGet('hub-ev-seen','null'))}catch(e){r
 let evSeen=EVSEEN||{};
 // remember when each event first appeared, so events added since (a forwarded invite) can say "New" for a day
 function markEvents(){const now=Date.now(),first=!EVSEEN&&!Object.keys(evSeen).length;let ch=false;
-  CAL.events.forEach(e=>{const k=e.title+'|'+(e.allDay?e.day:e.startMs);if(!(k in evSeen)){evSeen[k]=first?0:now;ch=true}});
-  if(ch){const ks=Object.keys(evSeen);if(ks.length>400)ks.slice(0,ks.length-400).forEach(k=>delete evSeen[k]);lsSet('hub-ev-seen',JSON.stringify(evSeen))}}
+  const fresh=CAL.events.map(e=>e.title+'|'+(e.allDay?e.day:e.startMs)).filter(k=>!(k in evSeen));
+  // a whole calendar arriving at once (an import, a newly shared calendar) isn't news: only a handful at a time is
+  const bulk=first||new Set(fresh).size>6;
+  fresh.forEach(k=>{evSeen[k]=bulk?0:now;ch=true});
+  // forget events that are over (keys end in a date or a start time), so a full calendar never outgrows the memory
+  const cut=parse(addDays(S.today,-1)).getTime();Object.keys(evSeen).forEach(k=>{const w=k.slice(k.lastIndexOf('|')+1),t=/^\d{4}-/.test(w)?parse(w).getTime():+w;if(t&&t<cut){delete evSeen[k];ch=true}});
+  if(ch)lsSet('hub-ev-seen',JSON.stringify(evSeen))}
 const isNew=e=>{const t=evSeen[e.title+'|'+(e.allDay?e.day:e.startMs)];return !!t&&Date.now()-t<864e5};
 function untilText(ms){const m=Math.round((ms-Date.now())/60000);return m<=0?'now':'in '+fmtDur(m)}
+// a day's calendar events plus household visits (cleaner, helper), all-day first, then by time
+function dayEvents(d,i){return CAL.events.filter(e=>e.day===d).concat(householdEvents(d,i===0?'Today':'Tomorrow').filter(isVisit).map(x=>({title:x.title,allDay:true,day:d,startMs:0,visit:1,cat:'hm'}))).sort(byStart)}
+// events on screen are numbered per redraw, so a tap can open the right one
+function evIdx(e){S.evList=S.evList||[];S.evList.push(e);return S.evList.length-1}
+function eventView(){const e=S.evPick;if(!e)return '';const p=personFor(e.title),d=parse(e.day);
+  const when=e.allDay?(e.span>1?'All day, '+e.span+' days':'All day'):fmtTime(e.startMs)+(e.endMs?' to '+fmtTime(e.endMs):'');
+  const rows=[['When',d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+', '+when.charAt(0).toLowerCase()+when.slice(1)]];
+  if(e.location)rows.push(['Where',e.location]);
+  if(p)rows.push(['Who',p.n]);
+  rows.push(['Calendar',e.visit?'Household schedule':e.cat==='hol'?'Holidays':e.calName||'Kitchen Hub']);
+  if(isNew(e))rows.push(['Added','In the last day']);
+  return '<div class="evd">'+rows.map(r=>'<div class="evr"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('')+'</div><div class="qbtns"><button class="pillbtn" data-act="open" data-s="week">See the week</button><button class="primary" data-act="close">Done</button></div>'}
 function agendaView(){if(!INART&&!FEED)return '<p class="ag-empty">Connect the calendar in Settings to see the next few days here.</p>';
   if(CAL.state!=='ok')return '<p class="ag-empty">'+esc(CAL.state==='loading'?'Loading the calendar…':'Can’t reach the calendar right now. It tries again in 5 minutes.')+'</p>';
-  const now=Date.now();let h='',nextDone=false,rows=0;
-  for(let i=0;i<6;i++){const d=addDays(S.today,i),evs=CAL.events.filter(e=>e.day===d).concat(householdEvents(d,i===0?'Today':'Tomorrow').filter(isVisit).map(x=>({title:x.title,allDay:true,day:d,startMs:0,visit:1}))).sort(byStart)
-      .filter(e=>i>0||e.allDay||(e.endMs||e.startMs+3600000)>now);
-    if(!evs.length&&i>1)continue;
+  const now=Date.now();let h='',nextDone=false;
+  for(let i=0;i<6;i++){const d=addDays(S.today,i),evs=dayEvents(d,i),all=evs.filter(e=>e.allDay),timed=evs.filter(e=>!e.allDay).filter(e=>i>0||(e.endMs||e.startMs+3600000)>now);
+    if(!all.length&&!timed.length&&i>1)continue;
     h+='<div class="ag-day">'+(i===0?'Today':i===1?'Tomorrow':DAYS[dowOf(d)].name)+'</div>';
-    if(!evs.length){h+='<div class="ag-row quiet"><span></span><span class="tm"></span><span class="tt">Nothing on the calendar</span></div>';continue}
-    evs.forEach(e=>{const p=personFor(e.title),nx=!nextDone&&i===0&&!e.allDay&&e.startMs>now-300000;if(nx)nextDone=true;rows++;
-      h+='<div class="ag-row'+(nx?' next':'')+'"><span class="dot'+(p?' pdot':'')+'" style="'+(p?pvars(p):'--c:'+(CATC[e.visit?'hm':e.cat]||'#fff'))+'"></span><span class="tm">'+(e.allDay?'All day':fmtTime(e.startMs))+'</span>'+
-        '<span class="tt">'+esc(e.title)+(nx?'<small data-until="'+e.startMs+'">'+untilText(e.startMs)+'</small>':'')+'</span>'+(isNew(e)?'<span class="ag-new">New</span>':'')+'</div>'})}
+    if(!all.length&&!timed.length){h+='<div class="ag-row quiet"><span></span><span class="tm"></span><span class="tt">Nothing on the calendar</span></div>';continue}
+    // all-day events share one line of tags, so a busy calendar keeps its times visible
+    if(all.length)h+='<div class="ag-allday">'+all.map(e=>'<button class="ag-chip'+(e.cat==='hol'?' hol':'')+'" data-act="evopen" data-i="'+evIdx(e)+'">'+esc(e.title)+(isNew(e)?' <span class="ag-new">New</span>':'')+'</button>').join('')+'</div>';
+    timed.forEach(e=>{const p=personFor(e.title),nx=!nextDone&&i===0&&e.startMs>now-300000;if(nx)nextDone=true;
+      h+='<button class="ag-row'+(nx?' next':'')+'" data-act="evopen" data-i="'+evIdx(e)+'"><span class="dot'+(p?' pdot':'')+'" style="'+(p?pvars(p):'--c:'+(CATC[e.cat]||'#fff'))+'"></span><span class="tm">'+fmtTime(e.startMs)+'</span>'+
+        '<span class="tt">'+esc(e.title)+(nx?'<small data-until="'+e.startMs+'">'+untilText(e.startMs)+'</small>':'')+'</span>'+(isNew(e)?'<span class="ag-new">New</span>':'')+'</button>'})}
   const age=calAge();
   return (h||'<p class="ag-empty">Nothing on the calendar for the next few days.</p>')+(age?'<p class="ag-age">'+esc(age.charAt(0).toUpperCase()+age.slice(1))+'</p>':'')}
 /* ---------- "Home board" layout (preview, chosen in Settings): a header with the time, one sentence about the day,
@@ -1115,10 +1167,12 @@ function daySentence(){if(!FEED&&!INART)return '';if(CAL.state!=='ok')return '';
   const hol=CAL.events.find(e=>e.day===S.today&&e.cat==='hol'),left=CAL.events.filter(e=>e.day===S.today&&!e.allDay&&(e.endMs||e.startMs)>now).sort(byStart),
     allDay=CAL.events.filter(e=>e.day===S.today&&e.allDay&&e.cat!=='hol');
   let s=hol?hol.title+'. ':'';
-  if(left.length){const p=left.slice(0,3).map((e,i)=>(i?lc1(shortTitle(e.title)):shortTitle(e.title))+' at '+fmtTime(e.startMs));s+=(p.length>1?p.slice(0,-1).join(', ')+', then '+p[p.length-1]:p[0])+'.'}
+  // titles keep their capitals: they often start with a name ("Catherine yoga")
+  if(left.length){const busy=left.length>3,p=left.slice(0,busy?2:3).map(e=>shortTitle(e.title)+' at '+fmtTime(e.startMs));
+    s+=(busy?p.join(', ')+' and '+(left.length-2)+' more':p.length>1?p.slice(0,-1).join(', ')+', then '+p[p.length-1]:p[0])+'.'}
   else if(allDay.length)s+=allDay.slice(0,2).map(e=>shortTitle(e.title)).join(' and ')+' today.';
   else s+=lookAhead()?'':'Nothing else on the calendar today.';
-  if(lookAhead()||!left.length){const t=CAL.events.filter(e=>e.day===tm).sort(byStart)[0];if(t)s+=' Tomorrow: '+lc1(shortTitle(t.title))+(t.allDay?'':' at '+fmtTime(t.startMs))+'.'}
+  if(lookAhead()||!left.length){const t=CAL.events.filter(e=>e.day===tm).sort(byStart)[0];if(t)s+=' Tomorrow: '+shortTitle(t.title)+(t.allDay?'':' at '+fmtTime(t.startMs))+'.'}
   return s.trim()}
 const TIMER_IC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M9.5 3h5"/></svg>';
 // right side of the header: what's running or due (gold), then weather and the timer button
@@ -1134,7 +1188,7 @@ function boardHead(){const s=daySentence();
     '<div class="bside" id="gmid">'+boardMid()+'</div></header>'}
 function calColumn(){const ahead=lookAhead(),d=ahead?addDays(S.today,1):S.today,D=DAYS[dowOf(d)],pl=(weekData(mondayOf(d)).plan||{})[D.k]||{};
   return '<div class="bh"><h2>Calendar</h2><button class="blink" data-act="open" data-s="week">Week ›</button></div>'+
-    '<button class="agenda2" id="agenda2" data-act="open" data-s="week" aria-label="The next few days. Tap for the week.">'+agendaView()+'</button>'+
+    '<div class="agenda2" id="agenda2" aria-label="The next few days">'+agendaView()+'</div>'+
     '<button class="bdin" data-act="qedit" data-k="dinner" data-d="'+d+'"><span>'+(ahead?'Tomorrow’s dinner':'Dinner tonight')+'</span>'+(pl.dinner?'<b>'+esc(pl.dinner)+'</b>':'<b class="empty">Plan it</b>')+'<i aria-hidden="true">›</i></button>'}
 // one list row: tick it, tap × or swipe left to delete; both can be undone
 const brow=(L,x)=>'<div class="brow" data-swipe data-l="'+L+'" data-id="'+x.id+'">'+ck(x.done,'ltog','data-l="'+L+'" data-id="'+x.id+'"',x.t,x.from?'From '+x.from:'')+'<button class="bx" data-act="ldel" data-l="'+L+'" data-id="'+x.id+'" aria-label="Delete '+esc(x.t)+'">×</button></div>';
@@ -1164,14 +1218,14 @@ function fitRows(){const all=[...document.querySelectorAll('[data-fit]')];all.fo
   rows.forEach((r,i)=>{if(over[i]){r.hidden=true;n++}});if(n)B.insertAdjacentHTML('beforeend','<button class="bmore" data-act="open" data-s="lists">+'+n+' more ›</button>')})}
 function weatherSheet(){return '<div class="wxsheet">'+wxGlance()+tipView()+'<div class="g-sky">'+sunBlock()+'</div></div>'}
 // the agenda shows whole rows only; what doesn't fit is a tap away in the week view
-function fitAgenda(){const A=document.getElementById('agenda2');if(!A)return;const rows=[...A.querySelectorAll('.ag-row,.ag-day')];rows.forEach(r=>r.hidden=false);
+function fitAgenda(){const A=document.getElementById('agenda2');if(!A)return;const rows=[...A.querySelectorAll('.ag-row,.ag-day,.ag-allday')];rows.forEach(r=>r.hidden=false);
   const old=A.querySelector('.ag-more');if(old)old.remove();if(A.scrollHeight<=A.clientHeight+1)return;
   // measure every row before hiding any, so hiding one can't pull the next up into view
   const lim=A.getBoundingClientRect().bottom-30,over=rows.map(r=>r.getBoundingClientRect().bottom>lim);let hid=0;
-  rows.forEach((r,i)=>{if(over[i]){r.hidden=true;if(r.classList.contains('ag-row'))hid++}});
+  rows.forEach((r,i)=>{if(over[i]){r.hidden=true;hid+=r.classList.contains('ag-allday')?r.children.length:r.classList.contains('ag-row')?1:0}});
   // never leave a day name with nothing under it
   rows.forEach((r,i)=>{if(r.classList.contains('ag-day')&&!r.hidden&&(!rows[i+1]||rows[i+1].hidden))r.hidden=true});
-  if(hid)A.insertAdjacentHTML('beforeend','<span class="ag-more">'+hid+' more this week ›</span>')}
+  if(hid)A.insertAdjacentHTML('beforeend','<button class="ag-more" data-act="open" data-s="week">'+hid+' more this week ›</button>')}
 
 /* ---------- kitchen timers, the leave-the-house countdown, and dated countdowns ---------- */
 const fmtLeft=ms=>{const t=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60;return (h?h+':'+pad(m):m)+':'+pad(x)};
@@ -1285,16 +1339,19 @@ function nextCard(){const now=Date.now(),ahead=lookAhead(),tm=addDays(S.today,1)
   const r=rows[0],more=rows.length-1,age=calAge(),down=FEED&&CAL.state!=='ok'&&CAL.state!=='loading';
   return '<button class="pane hcard" data-act="open" data-s="week"><span>'+lab+(age?'<span class="stale"> · '+age+'</span>':'')+'</span>'+(r?'<b>'+esc(r.t)+'</b><small>'+esc(r.s+(more>0?(r.s?', ':'')+'+'+more+' more':''))+'</small>'
     :'<b class="empty">'+(down?'Calendar not loading':'Nothing scheduled')+'</b><small>'+(down?'Can’t reach the calendar right now':INART||FEED?'A quiet day':'Add your calendar in Settings')+'</small>')+'</button>'}
-function weekView(){let h='';
-  for(let i=0;i<7;i++){const d=addDays(S.today,i),D=DAYS[dowOf(d)],lab=i===0?'Today':i===1?'Tomorrow':D.name,pl=((weekData(mondayOf(d)).plan||{})[D.k])||{},dn=dayData(d).done||{},gs=jobGroups(d),
-      st={n:ROUTINE.reduce((a,r)=>a+cnt(r.items,dn),0)+gs.reduce((a,x)=>a+x.n,0),total:ROUTINE.reduce((a,r)=>a+r.items.length,0)+gs.reduce((a,x)=>a+x.of,0)};
-    const rows=CAL.events.filter(e=>e.day===d).sort(byStart).map(e=>'<div class="ev">'+(personFor(e.title)?'<span class="dot pdot" style="'+pvars(personFor(e.title))+'"></span>':dotc(e.cat))+'<span class="tm">'+(e.allDay?'All day':fmtTime(e.startMs))+'</span><span class="tt">'+esc(e.title)+(e.location?'<small>'+esc(e.location)+'</small>':'')+'</span></div>')
-      .concat(householdEvents(d,i===0?'Today':i===1?'Tomorrow':D.name).map(x=>'<div class="ev">'+dotc(x.cat)+'<span class="tm">'+esc(x.tm==='Today'||x.tm==='Tomorrow'?'':x.tm||'')+'</span><span class="tt">'+esc(x.title)+(x.sub?'<small>'+esc(x.sub)+'</small>':'')+'</span></div>'))
-      .concat(pl.dinner?['<div class="ev">'+dotc('prep')+'<span class="tm">Dinner</span><span class="tt">'+esc(pl.dinner)+'</span></div>']:[]);
-    h+='<section class="wkday"><button class="wkh" data-act="openday" data-d="'+d+'"><b>'+lab+'</b><span>'+parse(d).toLocaleDateString(undefined,{month:'short',day:'numeric'})+', '+esc(D.focus.toLowerCase())+'</span>'+(st.total?'<em>'+st.n+' of '+st.total+' done ›</em>':'')+'</button><div class="agenda">'+(rows.length?rows.join(''):'<div class="ev none">Nothing scheduled</div>')+'</div></section>'}
+// The week as seven columns, like a family wall calendar: all-day items and household jobs as tags at the top,
+// then timed events in order with the owner's colour, and that day's dinner at the foot. Tap an event for details.
+function weekView(){const off=S.weekOff?7:0,now=Date.now();let h='';
+  for(let i=0;i<7;i++){const d=addDays(S.today,off+i),D=DAYS[dowOf(d)],pl=((weekData(mondayOf(d)).plan||{})[D.k])||{},evs=dayEvents(d,off+i),
+      jobs=householdEvents(d,'').filter(x=>!isVisit(x)),all=evs.filter(e=>e.allDay),timed=evs.filter(e=>!e.allDay);
+    h+='<div class="wk-col'+(d===S.today?' today':'')+'"><div class="wk-h"><b>'+(d===S.today?'Today':D.name.slice(0,3))+'</b><span>'+parse(d).getDate()+'</span></div>'+
+      all.map(e=>'<button class="wk-tag'+(e.cat==='hol'?' hol':'')+'" data-act="evopen" data-i="'+evIdx(e)+'">'+esc(e.title)+'</button>').join('')+
+      jobs.map(x=>'<span class="wk-tag job">'+esc(x.title)+'</span>').join('')+
+      timed.map(e=>{const p=personFor(e.title);return '<button class="wk-ev'+((e.endMs||e.startMs)<now?' past':'')+'" data-act="evopen" data-i="'+evIdx(e)+'" style="'+(p?pvars(p):'--c:'+(CATC[e.cat]||'#fff'))+'"><span>'+fmtTime(e.startMs)+'</span><b>'+esc(e.title)+'</b>'+(isNew(e)?'<em>New</em>':'')+'</button>'}).join('')+
+      (!evs.length&&!jobs.length?'<div class="wk-none">Free</div>':'')+
+      '<button class="wk-din" data-act="qedit" data-k="dinner" data-d="'+d+'">'+(pl.dinner?'<span>Dinner</span>'+esc(pl.dinner):'<span>+ Dinner</span>')+'</button></div>'}
   const note=INART||FEED?'':'<p class="note">Appointments show here once your calendar is connected in Settings. Household days always show.</p>';
-  const embed=!INART&&!FEED&&CAL_IDS.length?'<div><button class="pillbtn" data-act="open" data-s="cal">Open Google Calendar</button></div>':'';
-  return note+embed+h}
+  return note+'<div class="wk">'+h+'</div>'}
 
 function jobGroups(d){const w=dowOf(d),D=DAYS[w],mon=mondayOf(d),wk=weekData(mon),done=dayData(d).done||{},g=[];
   if(D.tasks.length)g.push({key:'tasks',t:D.name+' must-dos',n:cnt(D.tasks,done),of:D.tasks.length,cat:'day'});
@@ -1394,13 +1451,12 @@ function timerView(){const d=S.tdraft||{};
 function keepTyped(){const n=document.getElementById('tname-in');if(n&&S.tdraft)S.tdraft.name=n.value}
 
 /* ---- what's new: shown once per release, until tapped or for a day ---- */
-const NEWS={id:'2026-11-22-weather',items:[
+const NEWS={id:'2026-11-22-calendar',items:[
+  ['A new home screen.','The calendar and your lists now share the screen, with the day in one sentence along the top. Classic is still in Settings › Home layout.'],
+  ['Your whole calendar, week by week.','Calendar shows seven days side by side; the arrow shows the week after. Tap any event for its time, place and calendar.'],
   ['The sky shows the weather.','Rain falls, snow drifts, clouds roll by, the sun’s rays turn, wind gusts, frost creeps in when it’s freezing and heat shimmers when it’s hot. Settings › Weather in the sky › Still turns it off.'],
-  ['Try the Home board.','Settings › Home layout › Home board. The calendar and your lists share the screen, with the day in one sentence, weather and timers along the top.'],
   ['Clearing lists.','Tap × on any item, or swipe it left, to delete it (Undo brings it back). Clear removes everything ticked, and ticked items clear themselves after a day.'],
-  ['To-dos come from email now.','The built-in checklists are cleared. Email the hub (its address is in Lists and Settings) a line like “To do: call the plumber” and it appears on the home screen, ready to tick off.'],
-  ['Live radar.','Tap the weather for the hourly forecast, 5 days, and the National Weather Service radar near you.'],
-  ['Name your timers.','Pick a name and any length, from 1 minute to 90. Tap a running timer’s name to rename it.']]};
+  ['To-dos come from email.','Email the hub (its address is in Lists and Settings) a line like “To do: call the plumber” and it appears on the home screen, ready to tick off.']]};
 function newsView(){return '<ol class="newsl">'+NEWS.items.map(x=>'<li><b>'+esc(x[0])+'</b> '+esc(x[1])+'</li>').join('')+'</ol><div class="qbtns"><button class="primary" data-act="close">Got it</button></div>'}
 function peopleSettings(){const ps=people(),own=settingsDoc().owners||{};
   let h='<section class="card"><div class="setrow" style="flex-direction:column;align-items:stretch"><div><h3>Family</h3><div class="note">Give each person a color. Their jobs show their avatar, and a calendar event takes their color when their name is in its title, like “Sam soccer”.</div></div>';
@@ -1508,13 +1564,16 @@ function sheetView(){if(!S.sheet||(S.sheet==='cal'&&!INART&&!FEED))return '';let
   else if(S.sheet==='lists'){title='Lists';sub='Shared household lists';body=listsView()}
   else if(S.sheet==='cal'){title='Calendar';sub='Next 7 days';body=calView()}
   else if(S.sheet==='house'){title='Household';sub='Saved only on this tablet';body=houseView()}
-  else if(S.sheet==='week'){title='This week';sub='Appointments, household days and dinners';body=weekView()}
+  else if(S.sheet==='week'){const a=addDays(S.today,S.weekOff?7:0),b=addDays(a,6),f=x=>parse(x).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    title=S.weekOff?'The week after':'This week';sub=f(a)+' to '+f(b);
+    nav='<button class="iconbtn" data-act="wkoff" data-v="0" aria-label="This week"'+(S.weekOff?'':' disabled style="opacity:.35"')+'>‹</button><button class="iconbtn" data-act="wkoff" data-v="1" aria-label="The week after"'+(S.weekOff?' disabled style="opacity:.35"':'')+'>›</button>';body=weekView()}
   else if(S.sheet==='qedit'){const q=S.q,D=DAYS[dowOf(q.d)];small=true;title={dinner:'Dinner',lunch:'Kids’ lunch',must:'Must happen'}[q.k];sub=q.d===S.today?(q.k==='dinner'?'Tonight':'Today'):D.name;body=qeditView()}
   else if(S.sheet==='add'){small=true;title='Add to a list';sub='Type it, tap Add. It’s on every screen right away.';body=addView()}
   else if(S.sheet==='group'){small=true;const g=jobGroups(S.sel).find(x=>x.key===S.group);title=g?g.t:'Checklist';sub=S.sel===S.today?'Today':parse(S.sel).toLocaleDateString(undefined,{weekday:'long'});body=groupView()}
   else if(S.sheet==='mail'){small=true;title='Email “'+LSHORT[S.mail.k]+'”';sub='Pick who gets it';body=mailView()}
   else if(S.sheet==='timer'){small=true;title=S.tdraft&&S.tdraft.id?'Name this timer':'New timer';sub=S.tdraft&&S.tdraft.id?'It shows by the countdown and when it rings':'Pick a name and how long';body=timerView()}
   else if(S.sheet==='person'){const p=personById(S.person),x=p?personStats()[p.id]:null;title=p?p.n:'Family';sub='Today'+(x&&x.of?', '+x.n+' of '+x.of+' done':'');body=personView()}
+  else if(S.sheet==='event'){small=true;title=S.evPick?S.evPick.title:'Event';sub='';body=eventView()}
   else if(S.sheet==='weather'){small=true;title='Weather';sub=LOC?'Near '+LOC.label:'';body=weatherSheet()}
   else if(S.sheet==='radar'){const L=localRadar(),us=S.radarView==='us'||!L;title='Radar';sub=us?'United States':(L.city||L.st)+' area';
     nav=L?'<div class="seg" role="group" aria-label="Radar area"><button data-act="radarview" data-v="local" aria-pressed="'+!us+'">Near us</button><button data-act="radarview" data-v="us" aria-pressed="'+us+'">Country</button></div>':'';body=radarView()}
@@ -1555,6 +1614,7 @@ function render(){
   if(txt){val=a.value;try{ss=a.selectionStart;se=a.selectionEnd}catch(e){}}
   const sb=document.getElementById('sheetbody'),sbTop=sb?sb.scrollTop:0,prevSheet=S._lastSheet;
   document.documentElement.classList.toggle('fx-paused',!!(S.amb||S.dim)); // no moving weather under a dimmed or sleeping screen
+  S.evList=[];
   app.innerHTML=(S.layout==='board'?boardView():'<main class="home">'+glanceView()+'<div class="act">'+nowPane()+'<div class="cards">'+mealCard()+nextCard()+'</div></div></main>')+dock()+sheetView()+
     (S.err?'<div class="status glass" role="status">'+esc(S.err)+'</div>':S.toast?'<button class="status glass" data-act="open" data-s="lists" style="border:0;color:inherit;font:inherit;font-size:14px;cursor:pointer;min-height:44px">'+esc(S.toast)+' ›</button>':battNote())+(S.undo?'<div class="status glass undo" role="status">'+(S.undo.verb||'Checked')+' “'+esc(S.undo.label.slice(0,48))+'”<button data-act="undo">Undo</button></div>':S.news&&!S.sheet?'<button class="status glass news" data-act="news">What’s new ›</button>':'')+(S.amb?ambientView():'')+(S.dim&&!S.amb?'<div class="dimmer" aria-hidden="true"></div>':'')+(S.ring?'<div class="alarm" data-act="ringoff" role="alertdialog" aria-label="Timer done"><b>Time’s up</b><span>'+esc(S.ring.label)+'</span><em>Tap anywhere to stop</em></div>':'');
   calSheet();
@@ -1594,7 +1654,7 @@ function tick(){const t=new Date(),el=document.getElementById('time');if(el)el.i
 function focusIn(id,sel){const n=document.getElementById(id);if(n){n.focus({preventScroll:true});if(sel)try{n.select()}catch(e){}}}
 function qsave(v){const q=S.q;if(!q)return;const D=DAYS[dowOf(q.d)],m=mondayOf(q.d);patch('weeks/'+m,{plan:{[D.k]:{[q.k]:String(v).trim().slice(0,200)}}},weekBase(m));closeSheet()}
 function openSheet(s,d){S.sheet=s;if(d)S.sel=d;S.flash=null;syncSubs();render();setTimeout(()=>{const c=document.querySelector('.sheet');if(c&&!document.activeElement.closest('.sheet'))c.focus({preventScroll:true})},30)}
-function closeSheet(){if(S.previewMin!=null){S.previewMin=null;lastSky='';setTimeout(paintSky)}S.sheet=null;S.sel=S.today;syncSubs();render()}
+function closeSheet(){S.weekOff=0;if(S.previewMin!=null){S.previewMin=null;lastSky='';setTimeout(paintSky)}S.sheet=null;S.sel=S.today;syncSubs();render()}
 function onAct(b){const a=b.dataset.act,ds=b.dataset;
   if(a==='open'&&ds.s==='radar'){S.radarT=Math.floor(Date.now()/120000);findRadar()}
   if(a==='open'){openSheet(ds.s);if(ds.s==='add')focusIn('add-'+S.addDest);return}
@@ -1627,6 +1687,8 @@ function onAct(b){const a=b.dataset.act,ds=b.dataset;
   if(a==='person'){S.person=ds.id;openSheet('person');return}
   if(a==='radarview'){S.radarView=ds.v;render();return}
   if(a==='layout'){S.layout=ds.v;lsSet('hub-layout',ds.v);render();return}
+  if(a==='evopen'){const e=(S.evList||[])[+ds.i];if(!e)return;S.evPick=e;openSheet('event');return}
+  if(a==='wkoff'){S.weekOff=+ds.v;render();return}
   if(a==='wxfx'){S.wxFx=ds.v==='1';lsSet('hub-wxfx',ds.v);wxKey='';paintWx();render();return}
   if(a==='news'){S.news=false;lsSet('hub-news-seen',NEWS.id);openSheet('news');return}
   if(a==='dimset'){S.dimOn=ds.v==='1';lsSet('hub-dim',ds.v);render();return}
@@ -1712,7 +1774,8 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
   for(let i=0;i<90;i++){const o=(.25+rnd()*.75).toFixed(2),z=rnd()<.12?3:2;h+='<i style="left:'+(rnd()*100).toFixed(2)+'%;top:'+(rnd()*72).toFixed(2)+'%;opacity:'+o+';width:'+z+'px;height:'+z+'px"></i>'}st.innerHTML=h})();
 S._ri=routineIdx(new Date());
 // home layout: Classic stays the default until Dan chooses; ?look=cal previews the calendar-first layout
-S.layout=/[?&]look=board\b/.test(location.search)?'board':lsGet('hub-layout','classic');
+// the Home board is the default since 2026-11-22 (Dan put Claude in charge of layout); Classic stays in Settings
+S.layout=/[?&]look=board\b/.test(location.search)?'board':lsGet('hub-layout','board');
 if(S.layout==='cal')S.layout='board'; // the earlier "Calendar first" preview became the Home board
 S.wxFx=lsGet('hub-wxfx','1')==='1';
 // the "What's new" note stays until it's tapped, or for a day after it first appears
