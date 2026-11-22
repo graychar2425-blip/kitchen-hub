@@ -925,7 +925,9 @@ function feedNorm(list){const out=[],seen=new Set();(Array.isArray(list)?list:[]
 async function loadFeed(){if(!FEED)return;
   try{const r=await fetch(FEED+(FEED.includes('?')?'&':'?')+'days=14',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();
     if(j.error){CAL.state='feedbad';CAL.err=j.error}else{CAL.events=feedNorm(j.events);CAL.state='ok';CAL.err=null;CAL.at=j.at=Date.now();markEvents();
-      if(j.inboxStatus)INBOX.status=j.inboxStatus;if(Array.isArray(j.inbox))applyInbox(j.inbox);delete j.inbox;lsSet('hub-feed-cache',JSON.stringify(j))}}
+      if(j.inboxStatus)INBOX.status=j.inboxStatus;if(Array.isArray(j.inbox))applyInbox(j.inbox);
+      if(j.lists&&typeof j.lists==='object'){SYNC.on=true;SYNC.server=j.lists;syncLists()}
+      delete j.inbox;delete j.lists;lsSet('hub-feed-cache',JSON.stringify(j))}}
   catch(e){const c=(()=>{try{return JSON.parse(lsGet('hub-feed-cache','null'))}catch(_){return null}})();
     if(c&&c.events&&CAL.state!=='ok'){CAL.events=feedNorm(c.events);CAL.state='ok';CAL.at=c.at||null}CAL.err='offline';if(CAL.state==='loading')CAL.state='error'}
   render()}
@@ -933,10 +935,37 @@ const CAL={state:INART||lsGet('hub-feed','')?'loading':'embed',events:[],err:nul
 /* ---- email inbox: the hub's Google script turns emails into list items and meal plans, and queues them in the feed.
    Each one is applied once (the tablet remembers its id), and only after the lists have loaded, so nothing is overwritten. */
 const INBOX={status:(()=>{try{return (JSON.parse(lsGet('hub-feed-cache','null'))||{}).inboxStatus||null}catch(e){return null}})(),pending:[],listsReady:false};
+/* ---- shared lists: once the hub's Google script keeps the lists (its feed includes them), every change made here
+   is sent to it, and each feed brings back everyone's changes. Changes not yet sent wait here and are replayed on
+   top of what the script sends back, so nothing done on the tablet ever flickers away. Before the script keeps the
+   lists, they live on this tablet only, exactly as before. ---- */
+const SYNC={on:false,busy:false,server:null,out:(()=>{try{return JSON.parse(lsGet('hub-list-out','[]'))||[]}catch(e){return []}})()};
+const saveOut=()=>lsSet('hub-list-out',JSON.stringify(SYNC.out.slice(-300)));
+function listOp(o){if(!SYNC.on)return;SYNC.out.push(o);saveOut();pushOps()}
+// the same meaning as the script's: add if missing, set ticked yes or no, delete, clear the ticked ones
+function applyOpLocal(L,o){const items=L[o.list];if(!items)return;const i=items.findIndex(x=>x.id===o.id);
+  if(o.op==='add'){if(i<0){const it={id:o.id,t:o.t,at:o.at||Date.now()};if(o.from)it.from=o.from;if(o.done){it.done=true;it.doneAt=o.doneAt||Date.now()}items.push(it);items.sort((a,b)=>(a.at||0)-(b.at||0))}}
+  else if(o.op==='set'){if(i>=0){if(o.done){items[i].done=true;items[i].doneAt=o.doneAt||Date.now()}else{delete items[i].done;delete items[i].doneAt}}}
+  else if(o.op==='del'){if(i>=0)items.splice(i,1)}
+  else if(o.op==='clear')L[o.list]=items.filter(x=>!x.done)}
+function takeLists(server){if(!store||!INBOX.listsReady)return;const L={};LISTS.forEach(x=>L[x.k]=(server[x.k]||[]).map(i=>Object.assign({},i)));
+  SYNC.out.forEach(o=>applyOpLocal(L,o));const cur=listsData();
+  if(LISTS.some(x=>JSON.stringify(cur[x.k]||[])!==JSON.stringify(L[x.k])))patch('lists/house',L,{})}
+async function pushOps(){if(!SYNC.on||SYNC.busy||!SYNC.out.length||!FEED)return;SYNC.busy=true;const batch=SYNC.out.slice(0,50);let ok=false;
+  try{const r=await fetch(FEED,{method:'POST',body:JSON.stringify({ops:batch})});const j=await r.json();
+    if(j&&j.lists){SYNC.out=SYNC.out.slice(batch.length);saveOut();SYNC.server=j.lists;ok=true;takeLists(j.lists)}else if(j&&j.error)S.err='Lists: '+j.error}
+  catch(e){}
+  SYNC.busy=false;if(SYNC.out.length)setTimeout(pushOps,ok?50:60000)}
+// the first time the script keeps the lists, this tablet's lists go up to it, so nothing is lost in the move
+function syncLists(){if(!SYNC.on||!store||!INBOX.listsReady)return;
+  if(lsGet('hub-lists-up','')!=='1'){const L=listsData(),ops=[];let n=0;LISTS.forEach(x=>(L[x.k]||[]).forEach(i=>{const o={op:'add',list:x.k,id:i.id,t:i.t,at:i.at||Date.now()-1e7+(n++)*1000};if(i.from)o.from=i.from;if(i.done){o.done=true;o.doneAt=i.doneAt||Date.now()}ops.push(o)}));
+    SYNC.out=ops.concat(SYNC.out);saveOut();lsSet('hub-lists-up','1')}
+  if(SYNC.server)takeLists(SYNC.server);pushOps()}
 // one-time cleanup: the first test email (2026-11-22) turned its signature into six grocery items
 const JUNK=['1a203b4304dedefa:1','1a203b4304dedefa:2','1a203b4304dedefa:3','1a203b4304dedefa:4','1a203b4304dedefa:5','1a203b4304dedefa:6'];
 // ticked items clear themselves a day after they were ticked, so lists never pile up
-function purgeDone(){if(!store||!INBOX.listsReady)return;const L=listsData(),now=Date.now(),p={};
+// (with shared lists, the hub's script clears them for every screen instead)
+function purgeDone(){if(!store||!INBOX.listsReady||SYNC.on)return;const L=listsData(),now=Date.now(),p={};
   LISTS.forEach(x=>{const items=L[x.k]||[];let ch=false;const keep=items.filter(i=>{if(!i.done)return true;if(!i.doneAt){ch=true;i.doneAt=now;return true}if(now-i.doneAt>864e5){ch=true;return false}return true});
     if(ch)p[x.k]=keep.map(i=>Object.assign({},i))});
   if(Object.keys(p).length)patch('lists/house',p,{})}
@@ -1532,7 +1561,7 @@ function settingsView(){return '<section class="card"><div class="setrow"><div><
     (INBOX.status.lastOk?(Date.now()-INBOX.status.lastOk>20*60000?'<b style="color:var(--warn)">Not checked since '+esc(fmtTime(INBOX.status.lastOk))+'.</b> Open the hub’s Google script and run setup again.':'Last checked '+esc(fmtTime(INBOX.status.lastOk))+'.'):'Waiting for the first check.')+
     (INBOX.status.lastError?' Last problem: '+esc(INBOX.status.lastError):'')+'</div></div></div>':'')+
   '<div class="setrow"><div><h3>Keep the screen on</h3><div class="note">Stops the tablet from dimming while the hub is open.</div></div><button class="pillbtn" data-act="wake">'+(S.wake?'On ✓':'Turn on')+'</button></div>'+
-  '<div class="setrow"><div><h3>Saving</h3><div class="note">'+(shared?'Checkmarks and lists sync to your Claude account, so your phone sees the same thing.':'Checkmarks and lists are saved on this device.')+'</div></div></div>'+
+  '<div class="setrow"><div><h3>Saving</h3><div class="note">'+(shared?'Checkmarks and lists sync to your Claude account, so your phone sees the same thing.':SYNC.on?'Lists are kept by the hub’s Google account, so every screen shows the same lists.'+(SYNC.out.length?' '+SYNC.out.length+' change'+(SYNC.out.length===1?'':'s')+' waiting to send.':' Everything is sent.'):'Lists are saved on this tablet.')+'</div></div></div>'+
   '<div class="setrow"><div><h3>Weather location</h3><div class="note">ZIP '+(LOC?LOC.label:'not set')+', Open-Meteo forecast'+(WX&&WX.fetchedAt?', updated '+fmtTime(WX.fetchedAt):'')+'.</div></div></div></section>'}
 function sheetView(){if(!S.sheet||(S.sheet==='cal'&&!INART&&!FEED))return '';let title,sub='',nav='',body,small=false;const wkNav='<button class="iconbtn" data-act="shift" data-n="-7" aria-label="Previous week">‹</button><button class="iconbtn" data-act="shift" data-n="7" aria-label="Next week">›</button>';
   if(S.sheet==='day'){const d=S.sel;title=parse(d).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});sub=DAYS[dowOf(d)].focus+(d===S.today?' · Today':'');
@@ -1701,8 +1730,13 @@ function onAct(b){const a=b.dataset.act,ds=b.dataset;
     if(a==='ldel'){const i=items.findIndex(x=>x.id===ds.id);if(i<0)return;const gone=items[i];items.splice(i,1);
       if(!ds.noundo){S.undo={act:'lrestore',ds:{l:ds.l,i:String(i),item:JSON.stringify(gone)},label:gone.t,verb:'Deleted'};clearTimeout(S._undoT);S._undoT=setTimeout(()=>{S.undo=null;render()},6000)}}
     if(a==='lclear')items=items.filter(x=>!x.done);
-    patch('lists/house',{[ds.l]:items},{});return}
-  if(a==='lrestore'){let items=(listsData()[ds.l]||[]).slice();const it=JSON.parse(ds.item);if(!items.some(x=>x.id===it.id))items.splice(Math.min(+ds.i,items.length),0,it);patch('lists/house',{[ds.l]:items},{});return}
+    patch('lists/house',{[ds.l]:items},{});
+    // the same change goes to the hub's script, so every screen shows it
+    if(a==='ltog'){const y=items.find(x=>x.id===ds.id);if(y)listOp({op:'set',list:ds.l,id:ds.id,done:!!y.done,doneAt:y.doneAt})}
+    else if(a==='ldel')listOp({op:'del',list:ds.l,id:ds.id});else listOp({op:'clear',list:ds.l});
+    return}
+  if(a==='lrestore'){let items=(listsData()[ds.l]||[]).slice();const it=JSON.parse(ds.item);if(!items.some(x=>x.id===it.id))items.splice(Math.min(+ds.i,items.length),0,it);patch('lists/house',{[ds.l]:items},{});
+    listOp(Object.assign({op:'add',list:ds.l},it));return}
   if(a==='addto'){S.addDest=ds.l;openSheet('add');focusIn('add-'+ds.l);return}
   if(a==='calallow'){calAllow();return}
   if(a==='lite'){S.lite=ds.v==='1';lsSet('hub-lite',S.lite?'1':'0');paintSky();render();return}
@@ -1739,7 +1773,8 @@ document.addEventListener('submit',e=>{const f=e.target.closest('[data-form]');i
     const people=(settingsDoc().emails||[]).filter(p=>p.email.toLowerCase()!==em.toLowerCase()).concat([{name:nm.slice(0,60),email:em.slice(0,200)}]);
     S.err=null;S.mail.to=S.mail.to.concat([em]);document.getElementById('mail-addr').value='';document.getElementById('mail-name').value='';patch('settings/house',{emails:people},{});document.activeElement&&document.activeElement.blur&&document.activeElement.blur();return}
   const inp=f.querySelector('input'),t=inp.value.trim();if(!t)return;inp.value='';
-  patch('lists/house',{[k]:(listsData()[k]||[]).concat([{id:uid(),t:t.slice(0,200),done:false}])},{})});
+  const it={id:uid(),t:t.slice(0,200),at:Date.now()};
+  patch('lists/house',{[k]:(listsData()[k]||[]).concat([it])},{});listOp(Object.assign({op:'add',list:k},it))});
 const timers={};
 function flush(el){clearTimeout(timers[el.id]);delete timers[el.id];const path=el.dataset.in,key=el.dataset.key,v=el.value.slice(0,2000);
   if((dig(C[path]||{},key)||'')===v)return;patch(path,nest(key,v),weekBase(path.split('/')[1]))}
@@ -1790,7 +1825,7 @@ if(!INART)setInterval(()=>{const f=document.getElementById('calframe');if(f&&doc
   store=db||makeLocal();shared=!!db;S.ready=true;syncSubs();watchBattery();
   store.collection('prep').onSnapshot(s=>{s.docs.forEach(d=>{if(!T.has('prep/'+d.id))C['prep/'+d.id]=clone(d.data())});render()},onErr);
   store.doc('settings/house').onSnapshot(s=>{if(s.exists&&!T.has('settings/house'))C['settings/house']=clone(s.data());render()},onErr);
-  store.doc('lists/house').onSnapshot(s=>{if(s.exists&&!T.has('lists/house'))C['lists/house']=clone(s.data());if(!INBOX.listsReady){INBOX.listsReady=true;dropJunk();purgeDone();applyInbox([])}render()},onErr);
+  store.doc('lists/house').onSnapshot(s=>{if(s.exists&&!T.has('lists/house'))C['lists/house']=clone(s.data());if(!INBOX.listsReady){INBOX.listsReady=true;dropJunk();purgeDone();applyInbox([]);syncLists()}render()},onErr);
   render()})();
 })();
 </script>
